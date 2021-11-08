@@ -87,6 +87,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     py_modules=['pandasfoam'],
+    scripts=['bin/datfile_monitor'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
@@ -95,6 +96,7 @@ setup(
         'License :: OSI Approved :: GNU Affero General Public License v3',
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: Implementation :: CPython',
     ],
     # $ setup.py publish support.
     cmdclass={
