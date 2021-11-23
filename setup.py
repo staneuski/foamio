@@ -87,7 +87,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     py_modules=['pandasfoam'],
-    scripts=['bin/datfile_monitor'],
+    scripts=['bin/plot_dat'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
