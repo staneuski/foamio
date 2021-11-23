@@ -1,17 +1,18 @@
 import linecache
-import os
+from pathlib import Path
+from typing import Union
 
 import pandas as pd
 
 
-def count_columns(filepath: str, sep: str, line_no: int = 1) -> int:
+def count_columns(filepath: Union[Path, str], sep: str, line_no: int = 1) -> int:
     """Count columns in a data-file by counting separators in a line."""
 
-    line = linecache.getline(filepath, line_no)
+    line = linecache.getline(str(Path(filepath)), line_no)
     return line.count(sep) + line.count('\n')
 
 
-def load_dat(filepath: str) -> pd.DataFrame:
+def load_dat(filepath: Union[Path, str]) -> pd.DataFrame:
     """Load OpenFOAM post-processing .dat file as pandas DataFrame."""
 
     # Get header size
@@ -32,11 +33,11 @@ def load_dat(filepath: str) -> pd.DataFrame:
     return dat
 
 
-def load_xy(filepath: str) -> pd.DataFrame:
+def load_xy(filepath: Union[Path, str]) -> pd.DataFrame:
     """Load OpenFOAM post-processing .xy file as pandas DataFrame."""
 
     # Get field names by slitting the filename
-    fields = os.path.splitext(os.path.basename(filepath))[0].split('_')
+    fields = Path(filepath).stem.split('_')
 
     # Check if field is vector-field by comparing fields and columns sizes
     columns_count = count_columns(filepath, sep='\t')
