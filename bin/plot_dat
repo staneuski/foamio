@@ -51,7 +51,7 @@ def plot(ax, args) -> None:
     ax.tick_params(axis='both')
     ax.set_xlabel(df.index.name)
 
-    if args.logscale or Path(args.file).name == 'residuals.dat':
+    if args.logscale or args.file.name == 'residuals.dat':
         ax.set_yscale('log')
 
 
@@ -60,7 +60,7 @@ def main() -> None:
     args = parse_arguments()
 
     # Set a title
-    args.title = Path(args.file).name if not args.title else args.title
+    args.title = Path(args.file).stem if not args.title else args.title
 
     # Create figure
     fig = plt.figure(figsize=(10, 6))
@@ -73,7 +73,7 @@ def main() -> None:
 
     plot(ax, args)
     if args.refresh:
-        animation.FuncAnimation(fig, animate, interval=args.refresh*1e+3)
+        ani = animation.FuncAnimation(fig, animate, interval=args.refresh*1e+3)
 
     plt.show()
 
