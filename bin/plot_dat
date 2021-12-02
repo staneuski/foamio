@@ -28,6 +28,9 @@ def parse_arguments():
     parser.add_argument('-r', '--refresh',
                         type=int, default=10,
                         help='refreshes display every <time> sec')
+    parser.add_argument('-b', '--background',
+                        action='store_false',
+                        help='open in background mode - save .svg plot alongside')
 
     return parser.parse_args()
 
@@ -60,7 +63,7 @@ def main() -> None:
     args = parse_arguments()
 
     # Set a title
-    args.title = Path(args.file).stem if not args.title else args.title
+    args.title = args.file.stem if not args.title else args.title
 
     # Create figure
     fig = plt.figure(figsize=(10, 6))
@@ -72,10 +75,14 @@ def main() -> None:
         plot(ax, args)
 
     plot(ax, args)
-    if args.refresh:
-        ani = animation.FuncAnimation(fig, animate, interval=args.refresh*1e+3)
 
-    plt.show()
+    if args.background:
+        if args.refresh:
+            ani = animation.FuncAnimation(fig, animate, interval=args.refresh*1e+3)
+        plt.show()
+
+    else:
+        plt.savefig(Path(args.file.parent, f'{args.file.stem}.svg'))
 
 
 if __name__ == '__main__':
