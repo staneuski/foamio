@@ -13,7 +13,8 @@ def count_columns(filepath: Union[Path, str], sep: str, line_no: int = 1) -> int
     return line.count(sep) + line.count('\n')
 
 
-def load_dat(filepath: Union[Path, str]) -> pd.DataFrame:
+def load_dat(filepath: Union[Path, str],
+             usecols: list[int] = None) -> pd.DataFrame:
     """Load OpenFOAM post-processing .dat file as pandas DataFrame."""
 
     def get_header_size(filepath: Union[Path, str]) -> int:
@@ -36,9 +37,11 @@ def load_dat(filepath: Union[Path, str]) -> pd.DataFrame:
                     dtype=float))
 
                 pos, field = (dat.columns.to_list().index(key) + 1,
-                             np.array(dat[key].to_list()))
-                for index in range(field.shape[-1]):
-                    dat.insert(pos + index, f'{key}.{index}', field[:, index])
+                              np.array(dat[key].to_list()))
+                for component_no in range(field.shape[-1]):
+                    dat.insert(pos + component_no,
+                               f'{key}.{component_no}',
+                               field[:, component_no])
 
                 nested_columns.append(key)
 
@@ -48,7 +51,8 @@ def load_dat(filepath: Union[Path, str]) -> pd.DataFrame:
     dat = pd.read_csv(filepath,
                       sep='\t',
                       header=get_header_size(filepath),
-                      index_col=0)
+                      index_col=0,
+                      usecols=usecols if usecols is None else ([0] + usecols))
 
     # Drop '#' and trails spaces from column names
     dat.index.name = dat.index.name.replace('#', '').strip()
@@ -57,7 +61,8 @@ def load_dat(filepath: Union[Path, str]) -> pd.DataFrame:
     return unnest(dat)
 
 
-def load_xy(filepath: Union[Path, str]) -> pd.DataFrame:
+def load_xy(filepath: Union[Path, str],
+            usecols: list[int] = None) -> pd.DataFrame:
     """Load OpenFOAM post-processing .xy file as pandas DataFrame."""
 
     # Get field names by slitting the filename
@@ -69,12 +74,13 @@ def load_xy(filepath: Union[Path, str]) -> pd.DataFrame:
         # Add coordinates to field names
         columns = [fields[0]]
         for column in fields[1:]:
-            columns += [f'{column}.{coord}' for coord in 'xyz']
+            columns += [f'{column}.{component_no}' for component_no in range(3)]
     else:
         columns = fields
 
     return pd.read_csv(filepath,
                        sep='\t',
-                       names=columns if len(columns) == columns_count
-                       else range(columns_count),
-                       index_col=0)
+                       index_col=0,
+                       usecols=usecols if usecols is None else ([0] + usecols),
+                       names=(columns if len(columns) == columns_count
+                              else range(columns_count)))

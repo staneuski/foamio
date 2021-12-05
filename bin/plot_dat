@@ -16,6 +16,7 @@ class ArgementsHandler():
         parser.add_argument('file', metavar='FILE',
                             type=Path,
                             help='path to file')
+
         parser.add_argument('-t', '--title',
                             type=str,
                             help='graph title - file name without extension by'
@@ -30,6 +31,10 @@ class ArgementsHandler():
         parser.add_argument('-r', '--refresh',
                             type=int, default=10,
                             help='refreshes display every <time> sec')
+        parser.add_argument('-uc', '--usecols',
+                            type=int, default=None, nargs='+',
+                            help='column indices (using header in .dat-file)'
+                                 ' to plot')
         parser.add_argument('-b', '--background',
                             action='store_true',
                             help='open in background mode - save .svg plot'
@@ -71,11 +76,10 @@ class ArgementsHandler():
 def plot(ax, args) -> None:
     """Draw plot."""
 
-    dat = load_dat(args.file)
-    dat.plot(ax=ax,
-             title=args.subtitle,
-             logy=(args.logscale or args.file.name == 'residuals.dat'),
-             grid=True)
+    load_dat(args.file, args.usecols).plot(ax=ax,
+                                          title=args.subtitle,
+                                          logy=args.logscale,
+                                          grid=True)
 
 
 def main() -> None:
