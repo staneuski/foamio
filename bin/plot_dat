@@ -19,11 +19,11 @@ class ArgementsHandler():
 
         parser.add_argument('-t', '--title',
                             type=str,
-                            help='graph title - file name without extension by'
-                                 ' default')
+                            help='graph title - OpenFOAM case name by default')
         parser.add_argument('-st', '--subtitle',
                             type=str,
-                            help='graph subtitle')
+                            help='graph subtitle - .dat file name without'
+                                 ' extension by default')
         parser.add_argument('-l', '--logscale',
                             action='store_true',
                             help='plots data (y-axis) on log scale - for'
@@ -32,7 +32,7 @@ class ArgementsHandler():
                             type=int, default=10,
                             help='refreshes display every <time> sec')
         parser.add_argument('-uc', '--usecols',
-                            type=int, default=None, nargs='+',
+                            type=int, args='+',
                             help='column indices (using header in .dat-file)'
                                  ' to plot')
         parser.add_argument('-b', '--background',
