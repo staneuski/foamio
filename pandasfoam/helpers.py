@@ -2,6 +2,7 @@ import linecache
 from pathlib import Path
 from typing import Union
 
+import numpy as np
 import pandas as pd
 
 
@@ -15,22 +16,45 @@ def count_columns(filepath: Union[Path, str], sep: str, line_no: int = 1) -> int
 def load_dat(filepath: Union[Path, str]) -> pd.DataFrame:
     """Load OpenFOAM post-processing .dat file as pandas DataFrame."""
 
-    # Get header size
-    header = 0
-    with open(filepath) as f:
-        for index, line in enumerate(f):
-            if not line.startswith('#'):
-                header = index - 1
-                break
+    def get_header_size(filepath: Union[Path, str]) -> int:
+        """Get header size."""
+
+        header = 0
+        with open(filepath) as f:
+            for index, line in enumerate(f):
+                if not line.startswith('#'):
+                    return index - 1
+
+    def unnest(dat: pd.DataFrame) -> pd.DataFrame:
+        """Unnest non-scalar field values to components."""
+
+        nested_columns: list = []
+        for key, column_dtype in zip(dat, dat.dtypes):
+            if column_dtype == np.dtype('object'):
+                dat[key] = dat[key].apply(lambda cell: np.array(
+                    cell.replace('(', '').replace(')', '').split(),
+                    dtype=float))
+
+                pos, field = (dat.columns.to_list().index(key) + 1,
+                             np.array(dat[key].to_list()))
+                for index in range(field.shape[-1]):
+                    dat.insert(pos + index, f'{key}.{index}', field[:, index])
+
+                nested_columns.append(key)
+
+        return dat.drop(nested_columns, axis='columns')
 
     # Read .dat-file as pandas' DataFrame
-    dat = pd.read_csv(filepath, sep='\t', header=header, index_col=0)
+    dat = pd.read_csv(filepath,
+                      sep='\t',
+                      header=get_header_size(filepath),
+                      index_col=0)
 
     # Drop '#' and trails spaces from column names
     dat.index.name = dat.index.name.replace('#', '').strip()
     dat.columns = dat.columns.str.strip()
 
-    return dat
+    return unnest(dat)
 
 
 def load_xy(filepath: Union[Path, str]) -> pd.DataFrame:

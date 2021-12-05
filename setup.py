@@ -3,7 +3,7 @@ import os
 import sys
 from shutil import rmtree
 
-from setuptools import Command, find_packages, setup
+from setuptools import Command, setup
 
 NAME = 'pandasfoam'
 DESCRIPTION = 'OpenFOAM monitoring and post-processing using pandas.'
@@ -15,6 +15,7 @@ VERSION = '0.0'
 
 REQUIRED = [
     'matplotlib',
+    'numpy',
     'pandas',
 ]
 EXTRAS = {}
