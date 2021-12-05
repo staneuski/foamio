@@ -14,7 +14,7 @@ def count_columns(filepath: Union[Path, str], sep: str, line_no: int = 1) -> int
 
 
 def load_dat(filepath: Union[Path, str],
-             usecols: list[int] = None) -> pd.DataFrame:
+             usecols: list = None) -> pd.DataFrame:
     """Load OpenFOAM post-processing .dat file as pandas DataFrame."""
 
     def get_header_size(filepath: Union[Path, str]) -> int:
@@ -62,7 +62,7 @@ def load_dat(filepath: Union[Path, str],
 
 
 def load_xy(filepath: Union[Path, str],
-            usecols: list[int] = None) -> pd.DataFrame:
+            usecols: list = None) -> pd.DataFrame:
     """Load OpenFOAM post-processing .xy file as pandas DataFrame."""
 
     # Get field names by slitting the filename
