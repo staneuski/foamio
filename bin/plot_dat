@@ -95,11 +95,14 @@ def main() -> None:
 
     ax = fig.add_subplot()
     plot(ax, args)
-    if not args.background or args.refresh:
+
+    if args.refresh and not args.background:
         ani = animation.FuncAnimation(fig, animate, interval=args.refresh*1e+3)
-        plt.show()
-    elif args.background:
+
+    if args.background:
         plt.savefig(Path(args.file.parent, f'{args.file.stem}.svg'))
+    else:
+        plt.show()
 
 
 if __name__ == '__main__':
