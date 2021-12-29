@@ -17,13 +17,12 @@ def load_dat(filepath: Union[Path, str],
              usecols: list = None) -> pd.DataFrame:
     """Load OpenFOAM post-processing .dat file as pandas DataFrame."""
 
-    def get_header_size(filepath: Union[Path, str]) -> int:
+    def get_header_size(filepath: Union[Path, str], comment: str = '#') -> int:
         """Get header size."""
 
-        header = 0
         with open(filepath) as f:
             for index, line in enumerate(f):
-                if not line.startswith('#'):
+                if not line.startswith(comment):
                     return index - 1
 
     def unnest(dat: pd.DataFrame) -> pd.DataFrame:
@@ -37,7 +36,7 @@ def load_dat(filepath: Union[Path, str],
                     dtype=float))
 
                 pos, field = (dat.columns.to_list().index(key) + 1,
-                              np.array(dat[key].to_list()))
+                             np.array(dat[key].to_list()))
                 for component_no in range(field.shape[-1]):
                     dat.insert(pos + component_no,
                                f'{key}.{component_no}',
@@ -65,22 +64,38 @@ def load_xy(filepath: Union[Path, str],
             usecols: list = None) -> pd.DataFrame:
     """Load OpenFOAM post-processing .xy file as pandas DataFrame."""
 
-    # Get field names by slitting the filename
-    fields = Path(filepath).stem.split('_')
+    def field_components(field_name: str, components_count: int) -> list:
+        if components_count <= 1:
+            return [field_name]
+        elif components_count == 3:
+            components = 'xyz'
+        elif components_count == 6:
+            components = ['xx', 'yy', 'zz', 'xy', 'yz', 'zx']
+        else:
+            components = list(range(components_count))
 
-    # Check if field is vector-field by comparing fields and columns sizes
+        return [f'{field_name}.{component}' for component in components]
+
+    # Get field names by splitting the filename
+    field_names = Path(filepath).stem.split('_')
+
     columns_count = count_columns(filepath, sep='\t')
-    if len(fields) != columns_count:
-        # Add coordinates to field names
-        columns = [fields[0]]
-        for column in fields[1:]:
-            columns += [f'{column}.{component_no}' for component_no in range(3)]
-    else:
-        columns = fields
+
+    # Get position of the first column with field value
+    pos = 0
+    if not (columns_count - 1) % len(field_names[1:]):
+        pos = 1
+    elif columns_count > 3 and not (columns_count - 3) % len(field_names[3:]):
+        pos = 3
+
+    # Constuct field names by appending components 
+    components_count = (columns_count - pos) / len(field_names[pos:])
+    names = field_components(field_names[0], pos)
+    for field_name in field_names[pos:]:
+        names += field_components(field_name, components_count)
 
     return pd.read_csv(filepath,
                        sep='\t',
                        index_col=0,
                        usecols=usecols if usecols is None else ([0] + usecols),
-                       names=(columns if len(columns) == columns_count
-                              else range(columns_count)))
+                       names=names)
