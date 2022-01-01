@@ -1,9 +1,12 @@
 import linecache
+import re
 from pathlib import Path
 from typing import Union
 
 import numpy as np
 import pandas as pd
+
+REGEX_FLOAT = r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?'
 
 
 def count_columns(filepath: Union[Path, str], sep: str, line_no: int = 1) -> int:
@@ -30,17 +33,20 @@ def load_dat(filepath: Union[Path, str],
 
         nested_columns: list = []
         for key, column_dtype in zip(dat, dat.dtypes):
-            if column_dtype == np.dtype('object'):
-                dat[key] = dat[key].apply(lambda cell: np.array(
-                    cell.replace('(', '').replace(')', '').split(),
-                    dtype=float))
+            if (column_dtype == np.dtype('object')
+                    and re.match(rf'.*?{REGEX_FLOAT}', dat[key].iloc[-1])):
+                dat[key] = dat[key].apply(
+                    lambda cell: np.array(cell.replace('(', '')
+                                              .replace(')', '')
+                                              .split(),
+                                          dtype=float))
 
                 pos, field = (dat.columns.to_list().index(key) + 1,
-                             np.array(dat[key].to_list()))
-                for component_no in range(field.shape[-1]):
-                    dat.insert(pos + component_no,
-                               f'{key}.{component_no}',
-                               field[:, component_no])
+                              np.array(dat[key].to_list()))
+                for component in range(field.shape[-1]):
+                    dat.insert(pos + component,
+                               f'{key}.{component}',
+                               field[:, component])
 
                 nested_columns.append(key)
 
@@ -72,7 +78,7 @@ def load_xy(filepath: Union[Path, str],
         elif components_count == 6:
             components = ['xx', 'yy', 'zz', 'xy', 'yz', 'zx']
         else:
-            components = list(range(components_count))
+            components = range(components_count)
 
         return [f'{field_name}.{component}' for component in components]
 
@@ -88,7 +94,7 @@ def load_xy(filepath: Union[Path, str],
     elif columns_count > 3 and not (columns_count - 3) % len(field_names[3:]):
         pos = 3
 
-    # Constuct field names by appending components 
+    # Constuct field names by appending components
     components_count = (columns_count - pos) / len(field_names[pos:])
     names = field_components(field_names[0], pos)
     for field_name in field_names[pos:]:
