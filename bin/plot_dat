@@ -51,7 +51,7 @@ class ArgementsHandler():
 
         self.__args.loc = self.__args.loc.resolve()
 
-        titles = self.__get_titles(self)
+        titles = self.__get_titles(self.__args.loc)
         self.__args.title = (titles[0]
                              if self.__args.title is None
                              else self.__args.title)
