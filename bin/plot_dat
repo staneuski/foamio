@@ -13,9 +13,9 @@ class ArgementsHandler():
             description='Monitor data using matplotlib.',
             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-        parser.add_argument('file', metavar='FILE',
+        parser.add_argument('loc', metavar='FILE_OR_DIR',
                             type=Path,
-                            help='path to file')
+                            help='.dat-file path or directory with .dat-files.')
 
         parser.add_argument('-t', '--title',
                             type=str,
@@ -49,34 +49,39 @@ class ArgementsHandler():
     def validate(self):
         """Arguments additional validation."""
 
-        self.__args.title = (self.__get_casename()
+        self.__args.loc = self.__args.loc.resolve()
+
+        titles = self.__get_titles(self)
+        self.__args.title = (titles[0]
                              if self.__args.title is None
                              else self.__args.title)
-
-        self.__args.subtitle = (self.__args.file.stem
+        self.__args.subtitle = (titles[1]
                                 if self.__args.subtitle is None
                                 else self.__args.subtitle)
 
         self.__args.logscale = (
-            self.__args.logscale or self.__args.file.name == 'residuals.dat')
+            self.__args.logscale or 'residuals' in str(self.__args.loc))
 
         return self
 
-    def __get_casename(self) -> str:
-        """Get OpenFOAM-case name if the .dat file is located in
-        postProcessing/ folder.
+    @staticmethod
+    def __get_titles(loc) -> tuple:
+        """Get OpenFOAM-case name and post-processing function name 
+        if the .dat file is located in postProcessing/ folder.
         """
 
-        folders = list(self.__args.file.parts)
-        return (folders[folders.index('postProcessing') - 1]
-                if 'postProcessing' in folders
-                else None)
+        if not 'postProcessing' in str(loc.parts):
+            return None
+
+        folders = list(loc.parts)
+        ind = folders.index('postProcessing')
+        return (folders[ind - 1], folders[ind + 1])
 
 
 def plot(ax, args) -> None:
     """Draw plot."""
 
-    load_dat(args.file, args.usecols).plot(ax=ax,
+    load_dat(args.loc, args.usecols).plot(ax=ax,
                                           title=args.subtitle,
                                           logy=args.logscale,
                                           grid=True)
@@ -100,7 +105,9 @@ def main() -> None:
         ani = animation.FuncAnimation(fig, animate, interval=args.refresh*1e+3)
 
     if args.background:
-        plt.savefig(Path(args.file.parent, f'{args.file.stem}.svg'))
+        plt.savefig(
+            Path(args.loc if args.loc.is_dir() else args.loc.parent,
+            'dat.png'))
     else:
         plt.show()
 

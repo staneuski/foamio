@@ -28,7 +28,7 @@ def load_dat(filepath: Union[Path, str],
                 if not line.startswith(comment):
                     return index - 1
 
-    def unnest(dat: pd.DataFrame) -> pd.DataFrame:
+    def unnest_columns(dat: pd.DataFrame) -> pd.DataFrame:
         """Unnest non-scalar field values to components."""
 
         nested_columns: list = []
@@ -52,18 +52,31 @@ def load_dat(filepath: Union[Path, str],
 
         return dat.drop(nested_columns, axis='columns')
 
-    # Read .dat-file as pandas' DataFrame
-    dat = pd.read_csv(filepath,
-                      sep='\t',
-                      header=get_header_size(filepath),
-                      index_col=0,
-                      usecols=usecols if usecols is None else ([0] + usecols))
+    def load(filepath: Path) -> pd.DataFrame:
 
-    # Drop '#' and trails spaces from column names
-    dat.index.name = dat.index.name.replace('#', '').strip()
-    dat.columns = dat.columns.str.strip()
+        # Read .dat-file as pandas' DataFrame
+        dat = pd.read_csv(filepath,
+                          sep='\t',
+                          header=get_header_size(filepath),
+                          index_col=0,
+                          usecols=usecols if usecols is None else ([0] + usecols))
 
-    return unnest(dat)
+        # Drop '#' and trails spaces from column names
+        dat.index.name = dat.index.name.replace('#', '').strip()
+        dat.columns = dat.columns.str.strip()
+
+        return unnest_columns(dat)
+
+    # Merge all .dat-files in the direcotry into one dataframe
+    if filepath.is_dir():
+        filepaths = list(Path(filepath).rglob('*.dat'))
+        if len({fp.name for fp in filepaths}) != 1:
+            raise ValueError(f'{filepath} is not valid')
+
+        return pd.concat([load(dat_file) for dat_file in sorted(filepaths)])
+
+    return load(filepath)
+
 
 
 def load_xy(filepath: Union[Path, str],
