@@ -42,7 +42,7 @@ def load_dat(filepath: Union[Path, str],
                                           dtype=float))
 
                 pos, field = (dat.columns.to_list().index(key) + 1,
-                              np.array(dat[key].to_list()))
+                             np.array(dat[key].to_list()))
                 for component in range(field.shape[-1]):
                     dat.insert(pos + component,
                                f'{key}.{component}',
@@ -67,9 +67,11 @@ def load_dat(filepath: Union[Path, str],
 
         return unnest_columns(dat)
 
+    filepath = Path(filepath)
+
     # Merge all .dat-files in the direcotry into one dataframe
     if filepath.is_dir():
-        filepaths = list(Path(filepath).rglob('*.dat'))
+        filepaths = list(filepath.rglob('*.dat'))
         if len({fp.name for fp in filepaths}) != 1:
             raise ValueError(f'{filepath} is not valid')
 
@@ -95,8 +97,10 @@ def load_xy(filepath: Union[Path, str],
 
         return [f'{field_name}.{component}' for component in components]
 
+    filepath = Path(filepath)
+
     # Get field names by splitting the filename
-    field_names = Path(filepath).stem.split('_')
+    field_names = filepath.stem.split('_')
 
     columns_count = count_columns(filepath, sep='\t')
 
