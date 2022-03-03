@@ -91,7 +91,7 @@ def load_xy(filepath: Union[Path, str],
         elif components_count == 3:
             components = 'xyz'
         elif components_count == 6:
-            components = ['xx', 'yy', 'zz', 'xy', 'yz', 'zx']
+            components = ['xx', 'xy', 'xz', 'yy', 'yz', 'zz']
         else:
             components = range(components_count)
 
