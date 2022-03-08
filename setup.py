@@ -5,13 +5,13 @@ from shutil import rmtree
 
 from setuptools import Command, setup
 
-NAME = 'pandasfoam'
-DESCRIPTION = 'OpenFOAM monitoring and post-processing using pandas.'
-URL = 'https://github.com/StasF1/pandasfoam'
+NAME = 'foam2py'
+DESCRIPTION = 'OpenFOAM monitoring and post-processing handlers.'
+URL = 'https://github.com/StasF1/foam2py'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.8'
-VERSION = '0.0'
+VERSION = '0.1'
 
 REQUIRED = [
     'matplotlib',
@@ -32,7 +32,7 @@ except FileNotFoundError:
 # Load the package's __version__.py module as a dictionary.
 about = {}
 if not VERSION:
-    project_slug = NAME.lower().replace("-", "_").replace(" ", "_")
+    project_slug = NAME.lower().replace('-', '_').replace(' ', '_')
     with open(os.path.join(here, project_slug, '__version__.py')) as f:
         exec(f.read(), about)
 else:
@@ -64,14 +64,13 @@ class UploadCommand(Command):
             pass
 
         self.status('Building Source and Wheel (universal) distribution…')
-        os.system(
-            '{0} setup.py sdist bdist_wheel --universal'.format(sys.executable))
+        os.system(f'{sys.executable} setup.py sdist bdist_wheel --universal')
 
         self.status('Uploading the package to PyPI via Twine…')
         os.system('twine upload dist/*')
 
         self.status('Pushing git tags…')
-        os.system('git tag v{0}'.format(about['__version__']))
+        os.system(f'git tag v{about["__version__"]}')
         os.system('git push --tags')
 
         sys.exit()
@@ -87,7 +86,7 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    py_modules=['pandasfoam'],
+    py_modules=['foam2py'],
     scripts=['bin/plot_dat'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
