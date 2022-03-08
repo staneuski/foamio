@@ -1,2 +1,2 @@
-# pandasfoam
-OpenFOAM monitoring and post-processing using pandas.
+# foam2py
+OpenFOAM monitoring and post-processing Python handlers and helpers. 
