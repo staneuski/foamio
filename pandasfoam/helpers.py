@@ -9,15 +9,29 @@ import pandas as pd
 REGEX_FLOAT = r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?'
 
 
-def count_columns(filepath: Union[Path, str], sep: str, line_no: int = 1) -> int:
+def is_notebook():
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            return True  # Jupyter notebook or qtconsole
+        elif shell == 'TerminalInteractiveShell':
+            return False  # Terminal running IPython
+        else:
+            return False  # Other type (?)
+    except NameError:
+        return False
+
+
+def count_columns(filepath: Union[Path, str],
+                  sep: str,
+                  line_no: int = 1) -> int:
     """Count columns in a data-file by counting separators in a line."""
 
     line = linecache.getline(str(Path(filepath)), line_no)
     return line.count(sep) + line.count('\n')
 
 
-def load_dat(filepath: Union[Path, str],
-             usecols: list = None) -> pd.DataFrame:
+def load_dat(filepath: Union[Path, str], usecols: list = None) -> pd.DataFrame:
     """Load OpenFOAM post-processing .dat file as pandas DataFrame."""
 
     def get_header_size(filepath: Union[Path, str], comment: str = '#') -> int:
@@ -35,17 +49,16 @@ def load_dat(filepath: Union[Path, str],
         for key, column_dtype in zip(dat, dat.dtypes):
             if (column_dtype == np.dtype('object')
                     and re.match(rf'.*?{REGEX_FLOAT}', dat[key].iloc[-1])):
-                dat[key] = dat[key].apply(
-                    lambda cell: np.array(cell.replace('(', '')
-                                              .replace(')', '')
-                                              .split(),
-                                          dtype=float))
+
+                fn = lambda cell: np.array(cell.replace('(', '').replace(
+                    ')', '').split(),
+                                           dtype=float)
+                dat[key] = dat[key].apply(fn)
 
                 pos, field = (dat.columns.to_list().index(key) + 1,
-                             np.array(dat[key].to_list()))
+                              np.array(dat[key].to_list()))
                 for component in range(field.shape[-1]):
-                    dat.insert(pos + component,
-                               f'{key}.{component}',
+                    dat.insert(pos + component, f'{key}.{component}',
                                field[:, component])
 
                 nested_columns.append(key)
@@ -59,7 +72,8 @@ def load_dat(filepath: Union[Path, str],
                           sep='\t',
                           header=get_header_size(filepath),
                           index_col=0,
-                          usecols=usecols if usecols is None else ([0] + usecols))
+                          usecols=(usecols if usecols is None else
+                                   ([0] + usecols)))
 
         # Drop '#' and trails spaces from column names
         dat.index.name = dat.index.name.replace('#', '').strip()
@@ -80,9 +94,7 @@ def load_dat(filepath: Union[Path, str],
     return load(filepath)
 
 
-
-def load_xy(filepath: Union[Path, str],
-            usecols: list = None) -> pd.DataFrame:
+def load_xy(filepath: Union[Path, str], usecols: list = None) -> pd.DataFrame:
     """Load OpenFOAM post-processing .xy file as pandas DataFrame."""
 
     def field_components(field_name: str, components_count: int) -> list:
