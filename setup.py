@@ -11,14 +11,17 @@ URL = 'https://github.com/StasF1/foam2py'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.8'
-VERSION = '0.1'
+VERSION = '0.1.1'
 
 REQUIRED = [
     'matplotlib',
     'numpy',
     'pandas',
 ]
-EXTRAS = {}
+EXTRAS = {
+    'pyvista',
+    'tqdm',
+}
 
 here = os.path.abspath(os.path.dirname(__file__))
 
