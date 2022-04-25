@@ -8,37 +8,48 @@ from foam2py.helpers import load_dat
 
 
 class ArgementsHandler():
+
     def __init__(self) -> None:
         parser = argparse.ArgumentParser(
             description='Monitor data using matplotlib.',
             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-        parser.add_argument('loc', metavar='FILE_OR_DIR',
-                            type=Path,
-                            help='.dat-file path or directory with .dat-files.')
+        parser.add_argument(
+            'loc',
+            metavar='FILE_OR_DIR',
+            type=Path,
+            help='.dat-file path or directory with .dat-files.')
 
-        parser.add_argument('-t', '--title',
+        parser.add_argument('-t',
+                            '--title',
                             type=str,
                             help='graph title - OpenFOAM case name by default')
-        parser.add_argument('-st', '--subtitle',
+        parser.add_argument('-st',
+                            '--subtitle',
                             type=str,
                             help='graph subtitle - .dat file name without'
-                                 ' extension by default')
-        parser.add_argument('-l', '--logscale',
+                            ' extension by default')
+        parser.add_argument('-l',
+                            '--logscale',
                             action='store_true',
                             help='plots data (y-axis) on log scale - for'
-                                 ' "residuals.dat" sets automatically')
-        parser.add_argument('-r', '--refresh',
-                            type=int, default=10,
+                            ' "residuals.dat" sets automatically')
+        parser.add_argument('-r',
+                            '--refresh',
+                            type=int,
+                            default=10,
                             help='refreshes display every <time> sec')
-        parser.add_argument('-uc', '--usecols',
-                            type=int, nargs='+',
+        parser.add_argument('-uc',
+                            '--usecols',
+                            type=int,
+                            nargs='+',
                             help='column indices (using header in .dat-file)'
-                                 ' to plot')
-        parser.add_argument('-b', '--background',
+                            ' to plot')
+        parser.add_argument('-b',
+                            '--background',
                             action='store_true',
                             help='open in background mode - save .svg plot'
-                                 ' alongside')
+                            ' alongside')
 
         self.__args = parser.parse_args()
 
@@ -52,15 +63,13 @@ class ArgementsHandler():
         self.__args.loc = self.__args.loc.resolve()
 
         titles = self.__get_titles(self.__args.loc)
-        self.__args.title = (titles[0]
-                             if self.__args.title is None
-                             else self.__args.title)
-        self.__args.subtitle = (titles[1]
-                                if self.__args.subtitle is None
-                                else self.__args.subtitle)
+        self.__args.title = (titles[0] if self.__args.title is None else
+                             self.__args.title)
+        self.__args.subtitle = (titles[1] if self.__args.subtitle is None else
+                                self.__args.subtitle)
 
-        self.__args.logscale = (
-            self.__args.logscale or 'residuals' in str(self.__args.loc))
+        self.__args.logscale = (self.__args.logscale
+                                or 'residuals' in str(self.__args.loc))
 
         return self
 
@@ -102,12 +111,14 @@ def main() -> None:
     plot(ax, args)
 
     if args.refresh and not args.background:
-        ani = animation.FuncAnimation(fig, animate, interval=args.refresh*1e+3)
+        ani = animation.FuncAnimation(fig,
+                                      animate,
+                                      interval=args.refresh * 1e+3)
 
     if args.background:
         plt.savefig(
             Path(args.loc if args.loc.is_dir() else args.loc.parent,
-            'dat.png'))
+                 'dat.png'))
     else:
         plt.show(block=True)
 
