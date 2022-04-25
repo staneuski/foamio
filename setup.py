@@ -19,8 +19,8 @@ REQUIRED = [
     'pandas',
 ]
 EXTRAS = {
-    'pyvista',
-    'tqdm',
+    'pyvista': '0.33',
+    'tqdm': '4.66',
 }
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -90,16 +90,15 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     py_modules=['foam2py'],
-    scripts=['bin/plot_dat'],
+    scripts=['bin/animate_cutplanes', 'bin/plot_dat'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
-    license='GNU GPLv3',
+    license='MIT',
     classifiers=[
-        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: Implementation :: CPython',
+        f'Programming Language :: Python :: {REQUIRES_PYTHON.replace(">=", "")}'
     ],
     # $ setup.py publish support.
     cmdclass={
