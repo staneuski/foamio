@@ -90,7 +90,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     py_modules=['foam2py'],
-    scripts=['bin/animate_cutplanes', 'bin/plot_dat'],
+    scripts=['bin/animate_cutplanes', 'bin/describe_dat', 'bin/plot_dat'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
