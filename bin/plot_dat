@@ -90,10 +90,10 @@ class ArgementsHandler():
 def plot(ax, args) -> None:
     """Draw plot."""
 
-    load_dat(args.loc, args.usecols).plot(ax=ax,
-                                          title=args.subtitle,
-                                          logy=args.logscale,
-                                          grid=True)
+    load_dat(args.loc, usecols=args.usecols).plot(ax=ax,
+                                                  title=args.subtitle,
+                                                  logy=args.logscale,
+                                                  grid=True)
 
 
 def main() -> None:
