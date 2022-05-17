@@ -115,6 +115,7 @@ def main() -> None:
                                       animate,
                                       interval=args.refresh * 1e+3)
 
+    plt.tight_layout()
     if args.background:
         plt.savefig(
             Path(args.loc if args.loc.is_dir() else args.loc.parent,
