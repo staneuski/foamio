@@ -19,11 +19,25 @@ def count_columns(filepath: Union[Path, str],
     return line.count(sep) + line.count('\n')
 
 
-def load_dat(filepath: Union[Path, str],
+def read_dat(filepath: Union[Path, str],
              *,
              usecols: list = None,
              use_nth: int = None) -> pd.DataFrame:
-    """Load OpenFOAM post-processing .dat file as pandas DataFrame."""
+    """Read OpenFOAM post-processing .dat file as pandas DataFrame.
+
+    Args:
+        filepath (Union[Path, str]): Path to .dat-file of directory
+        with .dat-files.
+        usecols (list[int], optional): Columns to read (starting with 1).
+        Defaults to None.
+        use_nth (int, optional): Read every n-th row. Defaults to None.
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        pd.DataFrame: Converted to DataFrame .dat-file.
+    """
 
     def get_header_size(filepath: Union[Path, str], comment: str = '#') -> int:
         """Get header size."""
@@ -90,11 +104,21 @@ def load_dat(filepath: Union[Path, str],
     return load(filepath)
 
 
-def load_xy(filepath: Union[Path, str],
+def read_xy(filepath: Union[Path, str],
             *,
             usecols: list = None,
             use_nth: int = None) -> pd.DataFrame:
-    """Load OpenFOAM post-processing .xy file as pandas DataFrame."""
+    """Load OpenFOAM post-processing .xy file as pandas DataFrame.
+
+    Args:
+        filepath (Union[Path, str]): Path to .xy-file.
+        usecols (list[int], optional): Columns to read (starting with 1).
+        Defaults to None.
+        use_nth (int, optional): Read every n-th row. Defaults to None.
+
+    Returns:
+        pd.DataFrame: Converted to DataFrame .dat-file.
+    """
 
     def field_components(field_name: str, components_count: int) -> list:
         if components_count <= 1:
@@ -157,7 +181,8 @@ def read_vtkfields(vtkdir: Path, pattern: str = '_cutPlane.vtk') -> pv.DataSet:
     ds = pv.read(files[0])
     for f in files[1:]:
         fieldname = f.name.replace(pattern, '')
-        ds[fieldname] = pv.read(f)[fieldname]
+        if fieldname in (data := pv.read(f)).array_names:
+            ds[fieldname] = data[fieldname]
     return ds
 
 

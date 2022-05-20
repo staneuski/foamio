@@ -4,7 +4,7 @@ from pathlib import Path
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-from foam2py import load_dat
+from foam2py import read_dat
 
 
 class ArgementsHandler():
@@ -90,7 +90,7 @@ class ArgementsHandler():
 def plot(ax, args) -> None:
     """Draw plot."""
 
-    load_dat(args.loc, usecols=args.usecols).plot(ax=ax,
+    read_dat(args.loc, usecols=args.usecols).plot(ax=ax,
                                                   title=args.subtitle,
                                                   logy=args.logscale,
                                                   grid=True)

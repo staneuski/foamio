@@ -48,9 +48,9 @@ class Case():
 
         def load(filepath: str) -> pd.DataFrame:
             if filepath.suffix == '.dat':
-                return readers.load_dat(filepath, use_nth=use_nth)
+                return readers.read_dat(filepath, use_nth=use_nth)
             elif filepath.suffix == '.xy':
-                return readers.load_xy(filepath, use_nth=use_nth)
+                return readers.read_xy(filepath, use_nth=use_nth)
             else:
                 raise ValueError(
                     'postProcessing file must have .dat, .xy extension.')
