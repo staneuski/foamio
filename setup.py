@@ -90,7 +90,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     py_modules=['foam2py'],
-    scripts=['bin/describe_dat', 'bin/plot_dat', 'bin/vtktimes_to_vtm'],
+    scripts=['bin/describe_dat', 'bin/plot_dat'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
