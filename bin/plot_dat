@@ -4,7 +4,7 @@ from pathlib import Path
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-from foam2py.helpers import load_dat
+from foam2py import load_dat
 
 
 class ArgementsHandler():

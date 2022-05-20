@@ -2,8 +2,7 @@ from pathlib import Path
 from typing import Union
 import pandas as pd
 
-from . import helpers
-
+from . import readers
 
 class Case():
     """OpenFOAM case handler (mostly for automating data from postProcessing/).
@@ -49,9 +48,9 @@ class Case():
 
         def load(filepath: str) -> pd.DataFrame:
             if filepath.suffix == '.dat':
-                return helpers.load_dat(filepath, use_nth=use_nth)
+                return readers.load_dat(filepath, use_nth=use_nth)
             elif filepath.suffix == '.xy':
-                return helpers.load_xy(filepath, use_nth=use_nth)
+                return readers.load_xy(filepath, use_nth=use_nth)
             else:
                 raise ValueError(
                     'postProcessing file must have .dat, .xy extension.')

@@ -10,7 +10,7 @@ DESCRIPTION = 'OpenFOAM monitoring and post-processing handlers.'
 URL = 'https://github.com/StasF1/foam2py'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
-REQUIRES_PYTHON = '>=3.6'
+REQUIRES_PYTHON = '>=3.8'
 VERSION = '0.1.1'
 
 REQUIRED = [
@@ -90,7 +90,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     py_modules=['foam2py'],
-    scripts=['bin/animate_cutplanes', 'bin/describe_dat', 'bin/plot_dat'],
+    scripts=['bin/describe_dat', 'bin/plot_dat'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
