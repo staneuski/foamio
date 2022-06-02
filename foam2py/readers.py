@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 REGEX_DIGIT = r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?'
 
+
 def count_columns(filepath: Union[Path, str],
                   sep: str,
                   line_no: int = 1) -> int:
@@ -163,16 +164,19 @@ def read_xy(filepath: Union[Path, str],
     )
 
 
-def read_vtkfields(vtkdir: Path, pattern: str = '_cutPlane.vtk') -> pv.DataSet:
+def read_vtkfields(vtkdir: Path,
+                   fieldnames: list = None,
+                   pattern: str = '_cutPlane.vtk') -> pv.DataSet:
     """Read folder (time-folder) with .vtk-files into a DataSet.
 
     Args:
         vtkdir (Path): Path to folder (time-folder)
-        pattern (str, optional): Pattern to match .vtk-files. Defaults to '_cutPlane.vtk'.
+        pattern (str, optional): Pattern to match .vtk-files. Defaults to
+        '_cutPlane.vtk'.
 
     Returns:
         pv.DataSet: DataSet with all .vtk-fields in folder (time-folder).
-    """ 
+    """
 
     # Match all .vtk-files using pattern
     files = sorted(vtkdir.glob(f'*{pattern}'))
@@ -181,12 +185,13 @@ def read_vtkfields(vtkdir: Path, pattern: str = '_cutPlane.vtk') -> pv.DataSet:
     ds = pv.read(files[0])
     for f in files[1:]:
         fieldname = f.name.replace(pattern, '')
-        if fieldname in (data := pv.read(f)).array_names:
+        if (fieldnames is None or (not fieldnames is None and fieldname in fieldnames)) \
+                and fieldname in (data := pv.read(f)).array_names:
             ds[fieldname] = data[fieldname]
     return ds
 
 
-def read_vtktimes(vtktimes_dir: Path) -> pv.MultiBlock:
+def read_vtktimes(vtktimes_dir: Path, fieldnames: list = None) -> pv.MultiBlock:
     """Read all time folders with .vtk-files into a MultiBlock.
 
     Args:
@@ -199,7 +204,9 @@ def read_vtktimes(vtktimes_dir: Path) -> pv.MultiBlock:
     time_folders = sorted(vtktimes_dir.glob(f'[0-1]*'))
 
     block = pv.MultiBlock()
-    for time_folder in (pbar := tqdm(time_folders)):
+    for time_folder in (pbar := tqdm(
+            time_folders,
+            bar_format="{desc:<18}{percentage:3.0f}%|{bar:22}{r_bar}")):
         pbar.set_description(f'Reading {(time := time_folder.name)}')
-        block[time] = read_vtkfields(time_folder)
+        block[time] = read_vtkfields(time_folder, fieldnames)
     return block
