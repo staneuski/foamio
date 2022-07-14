@@ -3,7 +3,7 @@ import linecache
 import logging
 import re
 from pathlib import Path
-from typing import Callable, Union
+from typing import Callable, Iterable, Union
 
 import numpy as np
 import pandas as pd
@@ -195,13 +195,13 @@ def read_vtkfields(
             for f in timefolder.glob('*.vtk')
             if (match := engine.search(f.name))
         }
-        logging.debug(
+        logging.info(
             f'{len(future_to_fieldname)} fields found @ {timefolder.name}')
 
         ds = None
         for future in concurrent.futures.as_completed(future_to_fieldname):
             fieldname = future_to_fieldname[future]
-            logging.info(f'{fieldname=} loaded @ {timefolder.name}')
+            logging.debug(f'{fieldname=} loaded @ {timefolder.name}')
             if ds is None:
                 ds = future.result()
             else:
@@ -209,32 +209,36 @@ def read_vtkfields(
         return ds
 
 
-def read_vtktimes(fo: Path,
-                  nproc: int = None,
-                  *args,
-                  **kwargs) -> pv.MultiBlock:
-    """Read all time folders with .vtk-files into a MultiBlock.
+def read_vtksequence(folders: Iterable,
+                     nproc: int = None,
+                     *args,
+                     **kwargs) -> Union[pv.MultiBlock, dict]:
+    """Read all folders (time-folders) with .vtk-files into a MultiBlock.
 
     Args:
-        fo (Path): Function object directory.
+        folders (Iterable[Path]): folders (time-folders) with .vtk-files.
         nproc (int, optional): The maximum number of processes that can be
         used. If None or not given then as many worker processes will be
         created as the machine has processors.
         *args, **kwargs: `read_vtkfields` arguments.
 
     Returns:
-        pv.MultiBlock: unordered (!) time-step to fields
+        Union[pv.MultiBlock, dict]: Ordered folder name (time-folder) to
+        dataset with fields.
     """
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=nproc) as e:
         future_to_time = {
-            e.submit(read_vtkfields, timefolder, *args, **kwargs):
-            timefolder.name
-            for timefolder in fo.glob(f'[0-1]*')
+            e.submit(read_vtkfields, folder, *args, **kwargs): folder.name
+            for folder in folders
         }
 
+        time_to_ds = {
+            future_to_time[future]: future.result()
+            for future in concurrent.futures.as_completed(future_to_time)
+        }
         block = pv.MultiBlock()
-        for future in concurrent.futures.as_completed(future_to_time):
-            time = future_to_time[future]
-            block[time] = future.result()
+        for time, ds in sorted(time_to_ds.items(),
+                               key=lambda time: float(time[0])):
+            block[time] = ds
         return block
