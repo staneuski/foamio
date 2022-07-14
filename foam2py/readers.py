@@ -1,19 +1,20 @@
+import concurrent.futures
 import linecache
+import logging
 import re
 from pathlib import Path
-from typing import Union
+from typing import Callable, Union
 
 import numpy as np
 import pandas as pd
 import pyvista as pv
-from tqdm import tqdm
 
 REGEX_DIGIT = r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?'
 
 
-def count_columns(filepath: Union[Path, str],
-                  sep: str,
-                  line_no: int = 1) -> int:
+def _count_columns(filepath: Union[Path, str],
+                   sep: str,
+                   line_no: int = 1) -> int:
     """Count columns in a data-file by counting separators in a line."""
 
     line = linecache.getline(str(Path(filepath)), line_no)
@@ -34,7 +35,7 @@ def read_dat(filepath: Union[Path, str],
         use_nth (int, optional): Read every n-th row. Defaults to None.
 
     Raises:
-        ValueError: _description_
+        ValueError: Raised when .dat-file path is invalid.
 
     Returns:
         pd.DataFrame: Converted to DataFrame .dat-file.
@@ -100,7 +101,8 @@ def read_dat(filepath: Union[Path, str],
         if len({fp.name for fp in filepaths}) != 1:
             raise ValueError(f'{filepath} is not valid')
 
-        return pd.concat([load(dat_file) for dat_file in sorted(filepaths)])
+        df = pd.concat([load(dat_file) for dat_file in sorted(filepaths)])
+        return df[~df.index.duplicated(keep='last')]
 
     return load(filepath)
 
@@ -138,7 +140,7 @@ def read_xy(filepath: Union[Path, str],
     # Get field names by splitting the filename
     field_names = filepath.stem.split('_')
 
-    columns_count = count_columns(filepath, sep='\t')
+    columns_count = _count_columns(filepath, sep='\t')
 
     # Get position of the first column with field value
     pos = 0
@@ -164,49 +166,75 @@ def read_xy(filepath: Union[Path, str],
     )
 
 
-def read_vtkfields(vtkdir: Path,
-                   fieldnames: list = None,
-                   pattern: str = '_cutPlane.vtk') -> pv.DataSet:
-    """Read folder (time-folder) with .vtk-files into a DataSet.
+def read_vtkfields(
+    timefolder: Path,
+    fieldnames: list = None,
+    selector: Callable = lambda pattern: f'^({pattern})_cutPlane.vtk'
+) -> pv.DataSet:
+    """Read .vtk-fields in folder (time-folder) into a DataSet.
 
     Args:
-        vtkdir (Path): Path to folder (time-folder)
-        pattern (str, optional): Pattern to match .vtk-files. Defaults to
-        '_cutPlane.vtk'.
+        timefolder (Path): Path to folder (time-folder).
+        fieldnames (list, optional): Fields to read. Defaults to None.
+        selector (_type_, optional): Function returning regex pattern to match
+        field filename. Defaults to
+        `lambda pattern: f'^({pattern})_cutPlane.vtk'`.
 
     Returns:
-        pv.DataSet: DataSet with all .vtk-fields in folder (time-folder).
+        pv.DataSet: DataSet with selected .vtk-fields found in folder.
     """
 
-    # Match all .vtk-files using pattern
-    files = sorted(vtkdir.glob(f'*{pattern}'))
+    # Match .vtk-files using provided selector
+    engine = re.compile(
+        selector("|".join(fieldnames) if not fieldnames is None else '.*'))
 
-    # Load and append to fields to DataArrays
-    ds = pv.read(files[0])
-    for f in files[1:]:
-        fieldname = f.name.replace(pattern, '')
-        if (fieldnames is None or (not fieldnames is None and fieldname in fieldnames)) \
-                and fieldname in (data := pv.read(f)).array_names:
-            ds[fieldname] = data[fieldname]
-    return ds
+    nthreads = len(fieldnames) if not fieldnames is None else 1
+    with concurrent.futures.ThreadPoolExecutor(max_workers=nthreads) as e:
+        future_to_fieldname = {
+            e.submit(pv.read, f): match.group(1)
+            for f in timefolder.glob('*.vtk')
+            if (match := engine.search(f.name))
+        }
+        logging.debug(
+            f'{len(future_to_fieldname)} fields found @ {timefolder.name}')
+
+        ds = None
+        for future in concurrent.futures.as_completed(future_to_fieldname):
+            fieldname = future_to_fieldname[future]
+            logging.info(f'{fieldname=} loaded @ {timefolder.name}')
+            if ds is None:
+                ds = future.result()
+            else:
+                ds[fieldname] = future.result()[fieldname]
+        return ds
 
 
-def read_vtktimes(vtktimes_dir: Path, fieldnames: list = None) -> pv.MultiBlock:
+def read_vtktimes(fo: Path,
+                  nproc: int = None,
+                  *args,
+                  **kwargs) -> pv.MultiBlock:
     """Read all time folders with .vtk-files into a MultiBlock.
 
     Args:
-        cutplane_dir (Path): Path to cutplane directory.
+        fo (Path): Function object directory.
+        nproc (int, optional): The maximum number of processes that can be
+        used. If None or not given then as many worker processes will be
+        created as the machine has processors.
+        *args, **kwargs: `read_vtkfields` arguments.
 
     Returns:
-        pv.MultiBlock: Times with combined .vtk-data into one DataSet.
+        pv.MultiBlock: unordered (!) time-step to fields
     """
 
-    time_folders = sorted(vtktimes_dir.glob(f'[0-1]*'))
+    with concurrent.futures.ProcessPoolExecutor(max_workers=nproc) as e:
+        future_to_time = {
+            e.submit(read_vtkfields, timefolder, *args, **kwargs):
+            timefolder.name
+            for timefolder in fo.glob(f'[0-1]*')
+        }
 
-    block = pv.MultiBlock()
-    for time_folder in (pbar := tqdm(
-            time_folders,
-            bar_format="{desc:<18}{percentage:3.0f}%|{bar:22}{r_bar}")):
-        pbar.set_description(f'Reading {(time := time_folder.name)}')
-        block[time] = read_vtkfields(time_folder, fieldnames)
-    return block
+        block = pv.MultiBlock()
+        for future in concurrent.futures.as_completed(future_to_time):
+            time = future_to_time[future]
+            block[time] = future.result()
+        return block
