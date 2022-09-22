@@ -10,7 +10,7 @@ DESCRIPTION = 'OpenFOAM monitoring and post-processing handlers.'
 URL = 'https://github.com/StasF1/foam2py'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
-REQUIRES_PYTHON = '>=3.8'
+REQUIRES_PYTHON = '>=3.6'
 VERSION = '0.1.1'
 
 REQUIRED = [
