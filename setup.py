@@ -7,7 +7,7 @@ from setuptools import Command, setup
 
 NAME = 'foamio'
 DESCRIPTION = 'OpenFOAM routines.'
-URL = 'https://github.com/StasF1/foam2py'
+URL = 'https://github.com/StasF1/foamio'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.6'
