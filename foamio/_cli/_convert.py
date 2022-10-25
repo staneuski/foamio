@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import xml.etree.cElementTree as et
 from pathlib import Path
