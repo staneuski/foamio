@@ -7,7 +7,7 @@ from setuptools import Command, setup
 
 NAME = 'foamio'
 DESCRIPTION = 'OpenFOAM routines.'
-URL = 'https://github.com/StasF1/foam2py'
+URL = 'https://github.com/StasF1/foamio'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.6'
@@ -85,7 +85,7 @@ setup(
     entry_points={
         'console_scripts': ['foamio = foamio._cli:main'],
     },
-    scripts=['bin/convert_pvd', 'bin/describe_dat', 'bin/plot_dat'],
+    scripts=[],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
