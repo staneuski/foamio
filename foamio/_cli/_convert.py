@@ -1,37 +1,46 @@
-#!/usr/bin/env python3
 import argparse
 import xml.etree.cElementTree as et
 from pathlib import Path
 
 import pyvista
 
-
-class ArgementsHandler():
-
-    def __init__(self) -> None:
-        parser = argparse.ArgumentParser(
-            description='Generate .pvd from VTK sequence.',
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-        parser.add_argument('loc',
-                            metavar='DIR',
-                            type=Path,
-                            help='folder with .vtk time-step folders'
-                            ' (e.g., functionObject directory with'
-                            ' .vtk cut-planes)')
-
-        self.__args = parser.parse_args()
-        self._validate()
-
-    @property
-    def args(self):
-        return self.__args
-
-    def _validate(self) -> None:
-        self.__args.loc = self.__args.loc.resolve()
+SUPPORTED_SUFFIXES = dict(
+    reader={'.vtk'},
+    writer={'.pvd'},
+)
 
 
-def convert_to_vtu(loc: Path) -> None:
+def add_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        'loc',
+        metavar='DIR',
+        type=Path,
+        help='directory with time-step folders to be read from',
+    )
+    # parser.add_argument(
+    #     '--input-format',
+    #     '--ifmt',
+    #     '-i',
+    #     type=str,
+    #     default='vtk',
+    #     choices=[s.replace('.', '') for s in SUPPORTED_SUFFIXES['reader']],
+    #     help='output file format',
+    # )
+    # parser.add_argument(
+    #     '--output-format',
+    #     '--ofmt',
+    #     '-o',
+    #     type=str,
+    #     default='pvd',
+    #     choices=[s.replace('.', '') for s in SUPPORTED_SUFFIXES['writer']],
+    #     help='output file format',
+    # )
+
+def __validate(args: argparse.Namespace) -> None:
+    args.loc = args.loc.resolve()
+
+
+def __convert_to_vtu(loc: Path) -> None:
     """Convert all .vtk to .vtu files in directory recursively.
 
     Args:
@@ -45,7 +54,7 @@ def convert_to_vtu(loc: Path) -> None:
                             pyvista.read(vtk_file))
 
 
-def generate_pvd(loc: Path) -> Path:
+def __generate_pvd(loc: Path) -> Path:
     """Create ParaView .pvd-file from directory with time-step folders.
 
     Args:
@@ -77,11 +86,8 @@ def generate_pvd(loc: Path) -> Path:
     return pvd_file
 
 
-def main() -> None:
-    args = ArgementsHandler().args
-    convert_to_vtu(args.loc)
-    generate_pvd(args.loc)
+def convert(args: argparse.Namespace) -> None:
+    __validate(args)
 
-
-if __name__ == '__main__':
-    main()
+    __convert_to_vtu(args.loc)
+    __generate_pvd(args.loc)
