@@ -2,7 +2,7 @@
 import argparse
 from pathlib import Path
 
-from foam2py import load_dat
+from foam2py import read_dat
 
 
 def parse_arguments():

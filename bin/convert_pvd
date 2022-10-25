@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+# %%
+import argparse
+import xml.etree.cElementTree as et
+from pathlib import Path
+
+import pyvista
+
+
+class ArgementsHandler():
+
+    def __init__(self) -> None:
+        parser = argparse.ArgumentParser(
+            description='Generate .pvd from VTK sequence.',
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+        parser.add_argument('loc',
+                            metavar='DIR',
+                            type=Path,
+                            help='folder with .vtk time-step folders'
+                            ' (e.g., functionObject directory with'
+                            ' .vtk cut-planes)')
+        parser.add_argument('-f',
+                            '--overwrite',
+                            action='store_true',
+                            help='store only .vtu-files (i.e., delete'
+                            ' .vtk-files) after conversion')
+
+        self.__args = parser.parse_args()
+        self._validate()
+
+    @property
+    def args(self):
+        return self.__args
+
+    def _validate(self) -> None:
+        self.__args.loc = self.__args.loc.resolve()
+
+
+def convert_to_vtu(loc: Path, overwrite: bool = False) -> None:
+    """Convert all .vtk to .vtu files in directory recursively.
+
+    Args:
+        loc (Path): Directory storing .vtk-files.
+        overwrite (bool, optional): Delete .vtk-files after conversion. Defaults
+        to False.
+    """
+
+    for vtk_file in loc.rglob('*.vtk'):
+        # Convertion could be done with meshio directly but it does not
+        # support reading PolyData VTK.
+        pyvista.save_meshio(vtk_file.with_suffix('.vtu'),
+                            pyvista.read(vtk_file))
+
+        if overwrite:
+            vtk_file.unlink()
+
+
+def generate_pvd(loc: Path) -> Path:
+    """Create ParaView .pvd-file from directory with time-step folders.
+
+    Args:
+        loc (Path): Directory storing time-step folders with .vtu-files.
+
+    Returns:
+        Path: generated XML-based ParaView .pvd-file
+    """
+
+    root = et.Element('VTKFile',
+                      type='Collection',
+                      byte_order='LittleEndian',
+                      compressor='vtkZLibDataCompressor')
+
+    # Iterate over .vtu-files
+    cellection = et.SubElement(root, 'Collection')
+    for vtu_file in sorted(loc.rglob('*.vtu')):
+        et.SubElement(
+            cellection,
+            'DataSet',
+            timestep=vtu_file.parent.name,
+            group='',
+            part='0',
+            file=str(vtu_file.relative_to(loc.parent)),
+        )
+
+    tree = et.ElementTree(root)
+    tree.write(pvd_file := loc.with_suffix('.pvd'))
+    return pvd_file
+
+
+def main() -> None:
+    args = ArgementsHandler().args
+    convert_to_vtu(args.loc, args.overwrite)
+    generate_pvd(args.loc)
+
+
+if __name__ == '__main__':
+    main()

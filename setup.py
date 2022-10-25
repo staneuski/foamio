@@ -6,12 +6,12 @@ from shutil import rmtree
 from setuptools import Command, setup
 
 NAME = 'foam2py'
-DESCRIPTION = 'OpenFOAM monitoring and post-processing handlers.'
+DESCRIPTION = 'OpenFOAM routines.'
 URL = 'https://github.com/StasF1/foam2py'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.6'
-VERSION = '0.1.2'
+VERSION = '0.1.3'
 
 REQUIRED = [
     'matplotlib',
@@ -19,6 +19,7 @@ REQUIRED = [
     'pandas',
 ]
 EXTRAS = {
+    'pyvista',
 }
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -88,7 +89,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     py_modules=['foam2py'],
-    scripts=['bin/describe_dat', 'bin/plot_dat'],
+    scripts=['bin/convert_pvd', 'bin/describe_dat', 'bin/plot_dat'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
