@@ -68,6 +68,12 @@ def add_args(parser: argparse.ArgumentParser) -> None:
 def __validate(args: argparse.Namespace) -> None:
     args.loc = args.loc.resolve()
 
+    titles = __get_titles(args.loc)
+    args.title = titles[0] if args.title is None else args.title
+    args.subtitle = titles[1] if args.subtitle is None else args.subtitle
+
+    args.logscale = args.logscale or 'residuals' in str(args.loc)
+
 
 def __get_titles(loc: Path) -> tuple[str, str]:
     """Get OpenFOAM-case name and post-processing function name if the .dat
