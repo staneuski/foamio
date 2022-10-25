@@ -15,13 +15,6 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         type=Path,
         help='.dat-file path or directory with .dat-files.',
     )
-    parser.add_argument(
-        '--usecols',
-        '-uc',
-        type=int,
-        nargs='+',
-        help='column indices (using header in .dat-file)',
-    )
 
     parser.add_argument(
         '--usecols',
