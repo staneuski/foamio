@@ -5,13 +5,13 @@ from shutil import rmtree
 
 from setuptools import Command, setup
 
-NAME = 'foam2py'
+NAME = 'foamio'
 DESCRIPTION = 'OpenFOAM routines.'
 URL = 'https://github.com/StasF1/foam2py'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.6'
-VERSION = '0.1.3'
+VERSION = '0.2.0'
 
 REQUIRED = [
     'matplotlib',
@@ -19,7 +19,7 @@ REQUIRED = [
     'pandas',
 ]
 EXTRAS = {
-    'pyvista',
+    'pyvista': '0.36',
 }
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -31,14 +31,7 @@ try:
 except FileNotFoundError:
     long_description = DESCRIPTION
 
-# Load the package's __version__.py module as a dictionary.
-about = {}
-if not VERSION:
-    project_slug = NAME.lower().replace('-', '_').replace(' ', '_')
-    with open(os.path.join(here, project_slug, '__version__.py')) as f:
-        exec(f.read(), about)
-else:
-    about['__version__'] = VERSION
+about = {'__version__': VERSION}
 
 
 class UploadCommand(Command):
@@ -88,8 +81,11 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    py_modules=['foam2py'],
-    scripts=['bin/convert_pvd', 'bin/describe_dat', 'bin/plot_dat'],
+    py_modules=['foamio'],
+    entry_points={
+        'console_scripts': ['foamio = foamio._cli:main'],
+    },
+    scripts=[],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
