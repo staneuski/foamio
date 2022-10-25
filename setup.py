@@ -11,14 +11,17 @@ URL = 'https://github.com/StasF1/foam2py'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.8'
-VERSION = '0.1'
+VERSION = '0.1.1'
 
 REQUIRED = [
     'matplotlib',
     'numpy',
     'pandas',
 ]
-EXTRAS = {}
+EXTRAS = {
+    'pyvista': '0.33',
+    'tqdm': '4.66',
+}
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -87,16 +90,15 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     py_modules=['foam2py'],
-    scripts=['bin/plot_dat'],
+    scripts=['bin/animate_cutplanes', 'bin/plot_dat'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
-    license='GNU GPLv3',
+    license='MIT',
     classifiers=[
-        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: Implementation :: CPython',
+        f'Programming Language :: Python :: {REQUIRES_PYTHON.replace(">=", "")}'
     ],
     # $ setup.py publish support.
     cmdclass={

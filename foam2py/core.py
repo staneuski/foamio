@@ -43,14 +43,15 @@ class Case():
 
     def load_postfn(self,
                     fn_name: str,
-                    join_timefolders: bool = True) -> pd.DataFrame:
+                    join_timefolders: bool = True,
+                    use_nth: int = None) -> pd.DataFrame:
         """Load results of post-process function."""
 
         def load(filepath: str) -> pd.DataFrame:
             if filepath.suffix == '.dat':
-                return helpers.load_dat(filepath)
+                return helpers.load_dat(filepath, use_nth=use_nth)
             elif filepath.suffix == '.xy':
-                return helpers.load_xy(filepath)
+                return helpers.load_xy(filepath, use_nth=use_nth)
             else:
                 raise ValueError(
                     'postProcessing file must have .dat, .xy extension.')

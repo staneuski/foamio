@@ -1,7 +1,7 @@
 import linecache
 import re
 from pathlib import Path
-from typing import Union
+from typing import Callable, Union
 
 import numpy as np
 import pandas as pd
@@ -9,7 +9,9 @@ import pandas as pd
 REGEX_FLOAT = r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?'
 
 
-def is_notebook():
+def is_notebook() -> bool:
+    """Check if current file is IPython notebook."""
+
     try:
         shell = get_ipython().__class__.__name__
         if shell == 'ZMQInteractiveShell':
@@ -31,7 +33,10 @@ def count_columns(filepath: Union[Path, str],
     return line.count(sep) + line.count('\n')
 
 
-def load_dat(filepath: Union[Path, str], usecols: list = None) -> pd.DataFrame:
+def load_dat(filepath: Union[Path, str],
+             *,
+             usecols: list = None,
+             use_nth: int = None) -> pd.DataFrame:
     """Load OpenFOAM post-processing .dat file as pandas DataFrame."""
 
     def get_header_size(filepath: Union[Path, str], comment: str = '#') -> int:
@@ -67,13 +72,18 @@ def load_dat(filepath: Union[Path, str], usecols: list = None) -> pd.DataFrame:
 
     def load(filepath: Path) -> pd.DataFrame:
 
+        header_pos = get_header_size(filepath)
+
         # Read .dat-file as pandas' DataFrame
-        dat = pd.read_csv(filepath,
-                          sep='\t',
-                          header=get_header_size(filepath),
-                          index_col=0,
-                          usecols=(usecols if usecols is None else
-                                   ([0] + usecols)))
+        dat = pd.read_csv(
+            filepath,
+            sep='\t',
+            header=header_pos,
+            index_col=0,
+            usecols=(usecols if usecols is None else ([0] + usecols)),
+            skiprows=(lambda n: n > header_pos and n % use_nth
+                      if not use_nth is None and use_nth >= 2 else None),
+        )
 
         # Drop '#' and trails spaces from column names
         dat.index.name = dat.index.name.replace('#', '').strip()
@@ -94,7 +104,10 @@ def load_dat(filepath: Union[Path, str], usecols: list = None) -> pd.DataFrame:
     return load(filepath)
 
 
-def load_xy(filepath: Union[Path, str], usecols: list = None) -> pd.DataFrame:
+def load_xy(filepath: Union[Path, str],
+            *,
+            usecols: list = None,
+            use_nth: int = None) -> pd.DataFrame:
     """Load OpenFOAM post-processing .xy file as pandas DataFrame."""
 
     def field_components(field_name: str, components_count: int) -> list:
@@ -129,8 +142,12 @@ def load_xy(filepath: Union[Path, str], usecols: list = None) -> pd.DataFrame:
     for field_name in field_names[pos:]:
         names += field_components(field_name, components_count)
 
-    return pd.read_csv(filepath,
-                       sep='\t',
-                       index_col=0,
-                       usecols=usecols if usecols is None else ([0] + usecols),
-                       names=names)
+    return pd.read_csv(
+        filepath,
+        sep='\t',
+        index_col=0,
+        usecols=usecols if usecols is None else ([0] + usecols),
+        names=names,
+        skiprows=(lambda n: n % use_nth
+                  if not use_nth is None and use_nth >= 2 else None),
+    )
