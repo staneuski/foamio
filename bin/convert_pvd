@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# %%
 import argparse
 import xml.etree.cElementTree as et
 from pathlib import Path
@@ -20,11 +19,6 @@ class ArgementsHandler():
                             help='folder with .vtk time-step folders'
                             ' (e.g., functionObject directory with'
                             ' .vtk cut-planes)')
-        parser.add_argument('-f',
-                            '--overwrite',
-                            action='store_true',
-                            help='store only .vtu-files (i.e., delete'
-                            ' .vtk-files) after conversion')
 
         self.__args = parser.parse_args()
         self._validate()
@@ -37,23 +31,18 @@ class ArgementsHandler():
         self.__args.loc = self.__args.loc.resolve()
 
 
-def convert_to_vtu(loc: Path, overwrite: bool = False) -> None:
+def convert_to_vtu(loc: Path) -> None:
     """Convert all .vtk to .vtu files in directory recursively.
 
     Args:
         loc (Path): Directory storing .vtk-files.
-        overwrite (bool, optional): Delete .vtk-files after conversion. Defaults
-        to False.
     """
 
     for vtk_file in loc.rglob('*.vtk'):
         # Convertion could be done with meshio directly but it does not
-        # support reading PolyData VTK.
+        # support reading VTK PolyData.
         pyvista.save_meshio(vtk_file.with_suffix('.vtu'),
                             pyvista.read(vtk_file))
-
-        if overwrite:
-            vtk_file.unlink()
 
 
 def generate_pvd(loc: Path) -> Path:
@@ -90,7 +79,7 @@ def generate_pvd(loc: Path) -> Path:
 
 def main() -> None:
     args = ArgementsHandler().args
-    convert_to_vtu(args.loc, args.overwrite)
+    convert_to_vtu(args.loc)
     generate_pvd(args.loc)
 
 
