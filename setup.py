@@ -11,7 +11,7 @@ URL = 'https://github.com/StasF1/foamio'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.6'
-VERSION = '0.2.0'
+VERSION = '0.2.1'
 
 REQUIRED = [
     'matplotlib',
@@ -19,6 +19,7 @@ REQUIRED = [
     'pandas',
 ]
 EXTRAS = {
+    'meshio': '5.3',
     'pyvista': '0.36',
 }
 
