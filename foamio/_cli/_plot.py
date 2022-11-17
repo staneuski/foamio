@@ -122,10 +122,12 @@ def plot(args: argparse.Namespace) -> None:
 
     plt.tight_layout()
     if args.background:
+        # Save to path with .png suffix either for folder name (e.g. to
+        # functionObject folder name) or just replace .dat suffix with .png
         plt.savefig(
-            Path(
-                args.loc if args.loc.is_dir() else args.loc.parent,
-                'dat.png'
-            ))
+            args.loc.with_suffix(args.loc.suffix + '.png')
+            if args.loc.is_dir()
+            else args.loc.with_suffix('.png')
+        )
     else:
         plt.show(block=True)
