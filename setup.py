@@ -11,17 +11,15 @@ URL = 'https://github.com/StasF1/foamio'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.6'
-VERSION = '0.2.2'
+VERSION = '0.2.3'
 
 REQUIRED = [
     'matplotlib',
     'numpy',
     'pandas',
+    'vtk',
 ]
-EXTRAS = {
-    'meshio': '5.3',
-    'pyvista': '0.36',
-}
+EXTRAS = {}
 
 here = os.path.abspath(os.path.dirname(__file__))
 
