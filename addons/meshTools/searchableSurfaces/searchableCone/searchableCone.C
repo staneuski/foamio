@@ -55,7 +55,10 @@ void Foam::searchableCone::boundingSpheres
     centres[0] = 0.5*(point1_ + point2_);
 
     radiusSqr.setSize(1);
-    radiusSqr[0] = Foam::magSqr(point1_-centres[0]) + Foam::sqr(radius1_);
+    radiusSqr[0] = 
+        (radius1_ > radius2_)
+            ? Foam::magSqr(point1_-centres[0]) + Foam::sqr(radius1_)
+            : Foam::magSqr(point2_-centres[0]) + Foam::sqr(radius2_);
 
     // Add a bit to make sure all points are tested inside
     radiusSqr += Foam::sqr(small);
@@ -108,7 +111,7 @@ Foam::pointIndexHit Foam::searchableCone::findNearest
     else if (parallel >= magDir_)
     {
         // nearest is at point2 end cap. Clip to radius.
-        info.setPoint(point2_ + min(magV, radius1_)*v);
+        info.setPoint(point2_ + min(magV, radius2_)*v);
     }
     else
     {
@@ -232,6 +235,7 @@ void Foam::searchableCone::findLineAll
     scalar tNear = vGreat;
     scalar tFar = vGreat;
 
+    // scalar radius;
     {
         scalar s = (V&unitDir_);
         if (mag(s) > vSmall)
@@ -250,14 +254,30 @@ void Foam::searchableCone::findLineAll
             // See if the points on the endcaps are actually inside the cylinder
             if (tPoint1 >= 0 && tPoint1 <= magV)
             {
-                if (radius2(start+tPoint1*V) <= sqr(radius1_))
+                scalar radius = 
+                (
+                    mag((start+tPoint1*V-point1_)&unitDir_)
+                  > mag((start+tPoint1*V-point2_)&unitDir_)
+                ) 
+                    ? radius2_
+                    : radius1_;
+
+                if (radius2(start+tPoint1*V) <= sqr(radius))
                 {
                     tNear = tPoint1;
                 }
             }
             if (tPoint2 >= 0 && tPoint2 <= magV)
             {
-                if (radius2(start+tPoint2*V) <= sqr(radius1_))
+                scalar radius = 
+                    (
+                        mag((start+tPoint2*V-point1_)&unitDir_)
+                      > mag((start+tPoint2*V-point2_)&unitDir_)
+                    )
+                        ? radius2_
+                        : radius1_;
+
+                if (radius2(start+tPoint2*V) <= sqr(radius))
                 {
                     // Check if already have a near hit from point1
                     if (tNear <= 1)
@@ -280,17 +300,53 @@ void Foam::searchableCone::findLineAll
         }
     }
 
-
-    const vector x = point1Start ^ unitDir_;
-    const vector y = V ^ unitDir_;
-    const scalar d = sqr(radius1_);
-
     // Second order equation of the form a*t^2 + b*t + c
-    const scalar a = (y&y);
-    const scalar b = 2*(x&y);
-    const scalar c = (x&x)-d;
+    scalar a, b, c;
 
-    const scalar disc = b*b-4*a*c;
+    scalar deltaRadius = radius2_ - radius1_;
+    if (mag(deltaRadius) <= rootVSmall)
+    {
+        vector point1Start(start - point1_);
+        const vector x = point1Start ^ unitDir_;
+        const vector y = V ^ unitDir_;
+        const scalar d = sqr(0.5*(radius1_ + radius2_));
+
+        a = (y&y);
+        b = 2*(x&y);
+        c = (x&x) - d;
+    }
+    else
+    {
+        vector v = normalised(end - start);
+        scalar p  = unitDir_ & v;
+        vector a1 = v - p*unitDir_;
+
+        // Determine the end point of the cone
+        point pa =
+            unitDir_*radius1_*mag(point2_-point1_)/(-deltaRadius)
+          + point1_;
+
+        scalar l2 = sqr(deltaRadius) + sqr(magDir_);
+        scalar sqrCosAlpha = sqr(magDir_)/l2;
+        scalar sqrSinAlpha = sqr(deltaRadius)/l2;
+
+        vector delP(start - pa);
+        vector p1 = (delP - (delP&unitDir_)*unitDir_);
+
+        a = sqrCosAlpha*((v - p*unitDir_)&(v - p*unitDir_))-sqrSinAlpha*sqr(p);
+        b =
+            2.0*sqrCosAlpha*(a1&p1)
+          - 2.0*sqrSinAlpha*(v&unitDir_)*(delP&unitDir_);
+        c =
+            sqrCosAlpha
+           *(
+                (delP-(delP&unitDir_)*unitDir_)
+              & (delP-(delP&unitDir_)*unitDir_)
+            )
+          - sqrSinAlpha*sqr(delP&unitDir_);
+    }
+
+    const scalar disc = sqr(b) - 4*a*c;
 
     scalar t1 = -vGreat;
     scalar t2 = vGreat;
@@ -306,10 +362,6 @@ void Foam::searchableCone::findLineAll
         if (mag(a) > rootVSmall)
         {
             t1 = -b/(2*a);
-
-            // Pout<< "single solution t:" << t1
-            //    << " for start:" << start << " end:" << end
-            //    << " c:" << c << endl;
 
             if (t1 >= 0 && t1 <= magV && t1 >= tPoint1 && t1 <= tPoint2)
             {
@@ -332,10 +384,6 @@ void Foam::searchableCone::findLineAll
         else
         {
             // Aligned with axis. Check if outside radius
-            // Pout<< "small discriminant:" << disc
-            //    << " for start:" << start << " end:" << end
-            //    << " magV:" << magV
-            //    << " c:" << c << endl;
             if (c > 0)
             {
                 return;
@@ -381,19 +429,10 @@ void Foam::searchableCone::findLineAll
                     tFar = t2;
                 }
             }
-            // Pout<< "two solutions t1:" << t1 << " t2:" << t2
-            //    << " for start:" << start << " end:" << end
-            //    << " magV:" << magV
-            //    << " c:" << c << endl;
         }
         else
         {
             // Aligned with axis. Check if outside radius
-            // Pout<< "large discriminant:" << disc
-            //    << " small a:" << a
-            //    << " for start:" << start << " end:" << end
-            //    << " magV:" << magV
-            //    << " c:" << c << endl;
             if (c > 0)
             {
                 return;
@@ -460,7 +499,7 @@ Foam::boundBox Foam::searchableCone::calcBounds() const
         sqrt(sqr(unitDir_.x()) + sqr(unitDir_.y()))
     );
 
-    kr *= radius1_;
+    kr *= (radius1_ > radius2_) ? radius1_ : radius2_;
 
     point min = point1_ - kr;
     point max = point1_ + kr;
@@ -670,53 +709,31 @@ void Foam::searchableCone::getNormal
 
             if (parallel <= 0)
             {
-                if ((magV-radius1_) < mag(parallel))
-                {
-                    // either above endcap (magV<radius) or outside but closer
-                    normal[i] = -unitDir_;
-                }
-                else
-                {
-                    normal[i] = v/magV;
-                }
+                // either above endcap (magV<radius) or outside but closer
+                normal[i] = (magV-radius1_) < mag(parallel)
+                    ? -unitDir_
+                    : v/magV;
             }
             else if (parallel <= 0.5*magDir_)
             {
                 // See if endcap closer or sidewall
-                if (magV >= radius1_ || (radius1_-magV) < parallel)
-                {
-                    normal[i] = v/magV;
-                }
-                else
-                {
-                    // closer to endcap
-                    normal[i] = -unitDir_;
-                }
+                normal[i] = (magV >= radius1_ || (radius1_-magV) < parallel)
+                    ? v/magV
+                    : -unitDir_;
             }
             else if (parallel <= magDir_)
             {
                 // See if endcap closer or sidewall
-                if (magV >= radius1_ || (radius1_-magV) < (magDir_-parallel))
-                {
-                    normal[i] = v/magV;
-                }
-                else
-                {
-                    // closer to endcap
-                    normal[i] = unitDir_;
-                }
+                normal[i] = 
+                    (magV >= radius1_ || (radius1_-magV) < (magDir_-parallel))
+                        ? v/magV
+                        : unitDir_; // closer to endcap
             }
             else    // beyond cylinder
             {
-                if ((magV-radius1_) < (parallel-magDir_))
-                {
-                    // above endcap
-                    normal[i] = unitDir_;
-                }
-                else
-                {
-                    normal[i] = v/magV;
-                }
+                normal[i] = ((magV-radius1_) < (parallel-magDir_))
+                        ? unitDir_ // above endcap
+                        : v/magV;
             }
         }
     }
@@ -741,14 +758,9 @@ void Foam::searchableCone::getVolumeType
         // Decompose sample-point1 into normal and parallel component
         scalar parallel = v & unitDir_;
 
-        if (parallel < 0)
+        if (parallel < 0 || parallel > magDir_)
         {
-            // left of point1 endcap
-            volType[pointi] = volumeType::outside;
-        }
-        else if (parallel > magDir_)
-        {
-            // right of point2 endcap
+            // left or right of point1 or point2 endcaps accordingly
             volType[pointi] = volumeType::outside;
         }
         else
@@ -756,14 +768,10 @@ void Foam::searchableCone::getVolumeType
             // Remove the parallel component
             v -= parallel*unitDir_;
 
-            if (mag(v) > radius1_)
-            {
-                volType[pointi] = volumeType::outside;
-            }
-            else
-            {
-                volType[pointi] = volumeType::inside;
-            }
+            volType[pointi] = 
+                (mag(v) > radius1_ + parallel * (radius2_-radius1_)/magDir_) 
+                    ? volumeType::outside
+                    : volumeType::inside;
         }
     }
 }
