@@ -6,6 +6,13 @@ __pycache__/
 # C extensions
 *.so
 
+# OpenFOAM stuff:
+darwin*Clang*/
+linux*Clang*/
+linux*Gcc*/
+linux*Icc*/
+lnInclude/
+
 # Distribution / packaging
 .Python
 build/
