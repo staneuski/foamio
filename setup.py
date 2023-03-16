@@ -88,9 +88,9 @@ setup(
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
-    license='MIT',
+    license='GNU GPLv3',
     classifiers=[
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: GNU Affero General Public License v3',
         'Programming Language :: Python :: 3 :: Only',
         f'Programming Language :: Python :: {REQUIRES_PYTHON.replace(">=", "")}'
     ],
