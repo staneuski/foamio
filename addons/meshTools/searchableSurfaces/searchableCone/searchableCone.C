@@ -77,97 +77,133 @@ Foam::tmp<Foam::pointField> Foam::searchableCone::points() const
 }
 
 
-Foam::pointIndexHit Foam::searchableCone::findNearest
+void Foam::searchableCone::findNearestAndNormal
 (
     const point& sample,
-    const scalar nearestDistSqr
+    const scalar nearestDistSqr,
+    pointIndexHit& info,
+    vector& nearNormal
 ) const
 {
-    pointIndexHit info(false, sample, -1);
-
     vector v(sample - point1_);
 
     // Decompose sample-point1 into normal and parallel component
-    scalar parallel = (v & unitDir_);
+    const scalar parallel = (v & unitDir_);
 
     // Remove the parallel component and normalise
     v -= parallel*unitDir_;
-    scalar magV = mag(v);
 
-    if (magV < rootVSmall)
-    {
-        v = Zero;
-    }
-    else
-    {
-        v /= magV;
-    }
+    const scalar magV = mag(v);
+    v /= mag(v);
 
-    if (parallel <= 0)
-    {
-        // nearest is at point1 end cap. Clip to radius.
-        info.setPoint(point1_ + min(magV, radius1_)*v);
-    }
-    else if (parallel >= magDir_)
-    {
-        // nearest is at point2 end cap. Clip to radius.
-        info.setPoint(point2_ + min(magV, radius2_)*v);
-    }
-    else
-    {
-        // in between endcaps. Might either be nearer endcaps or cylinder wall
+    // Nearest and normal on disk at point1
+    point disk1Point(point1_ + min(magV, radius1_)*v);
+    vector disk1Normal(-unitDir_);
 
-        // distance to endpoint: parallel or parallel-magDir
-        // distance to cylinder wall: magV-radius1_
+    // Nearest and normal on disk at point2
+    point disk2Point(point2_ + min(magV, radius2_)*v);
+    vector disk2Normal(unitDir_);
 
-        // Nearest cylinder point
-        point cylPt;
-        if (magV < rootVSmall)
+    // Nearest and normal on cone. Initialise to far-away point so if not
+    // set it picks one of the disk points
+    point nearCone(point::uniform(GREAT));
+    vector normalCone(1, 0, 0);
+
+    point projPt1 = point1_ + radius1_*v;
+    point projPt2 = point2_ + radius2_*v;
+
+    vector p1 = (projPt1 - point1_);
+    if (mag(p1) > rootVSmall)
+    {
+        p1 /= mag(p1);
+
+        // Find vector along the two end of cone
+        const vector b = normalised(projPt2 - projPt1);
+
+        // Find the vector along sample pt and pt at one end of cone
+        vector a = (sample - projPt1);
+
+        if (mag(a) <= rootVSmall)
         {
-            // Point exactly on centre line. Take any point on wall.
-            vector e1 = point(1,0,0) ^ unitDir_;
-            scalar magE1 = mag(e1);
-            if (magE1 < small)
-            {
-                e1 = point(0,1,0) ^ unitDir_;
-                magE1 = mag(e1);
-            }
-            e1 /= magE1;
-            cylPt = sample + radius1_*e1;
+            // Exception: sample on disk1. Redo with projPt2.
+            a = (sample - projPt2);
+
+            // Find normal unitvector
+            nearCone = (a & b)*b + projPt2;
+
+            vector b1 = (p1 & b)*b;
+            normalCone = normalised(p1 - b1);
         }
         else
         {
-            cylPt = sample + (radius1_-magV)*v;
-        }
+            // Find nearest point on cone surface
+            nearCone = (a & b)*b + projPt1;
 
-        if (parallel < 0.5*magDir_)
+            // Find projection along surface of cone
+            vector b1 = (p1 & b)*b;
+            normalCone = normalised(p1 - b1);
+        }
+    }
+
+    // Select nearest out of the 3 points (cone, disk1, disk2)
+
+    FixedList<scalar, 3> dist;
+    dist[0] = magSqr(nearCone - sample);
+    dist[1] = magSqr(disk1Point - sample);
+    dist[2] = magSqr(disk2Point - sample);
+
+    const label minI = findMin(dist);
+
+    // Snap the point to the corresponding surface
+
+    if (minI == 0)  // Near the cone
+    {
+        // Closest to (infinite) cone. See if needs clipping to end disks
         {
-            // Project onto p1 endcap
-            point end1Pt = point1_ + min(magV, radius1_)*v;
+            vector v1(nearCone - point1_);
+            scalar para = (v1 & unitDir_);
+            // Remove the parallel component and normalise
+            v1 -= para*unitDir_;
+            const scalar magV1 = mag(v1);
+            v1 = v1/magV1;
 
-            if (magSqr(sample-cylPt) < magSqr(sample-end1Pt))
+            if (para < 0.0 && magV1 >= radius1_)
             {
-                info.setPoint(cylPt);
+                // Near point 1. Set point to intersection of disk and cone.
+                // Keep normal from cone.
+                nearCone = disk1Point;
             }
-            else
+            else if (para < 0.0 && magV1 < radius1_)
             {
-                info.setPoint(end1Pt);
+                // On disk1
+                nearCone = disk1Point;
+                normalCone = disk1Normal;
+            }
+            else if (para > magDir_ && magV1 >= radius2_)
+            {
+                // Near point 2. Set point to intersection of disk and cone.
+                // Keep normal from cone.
+                nearCone = disk2Point;
+            }
+            else if (para > magDir_ && magV1 < radius2_)
+            {
+                // On disk2
+                nearCone = disk2Point;
+                normalCone = disk2Normal;
             }
         }
-        else
-        {
-            // Project onto p2 endcap
-            point end2Pt = point2_ + min(magV, radius1_)*v;
-
-            if (magSqr(sample-cylPt) < magSqr(sample-end2Pt))
-            {
-                info.setPoint(cylPt);
-            }
-            else
-            {
-                info.setPoint(end2Pt);
-            }
-        }
+        info.setPoint(nearCone);
+        nearNormal = normalCone;
+    }
+    else if (minI == 1) // Near to disk1
+    {
+        info.setPoint(disk1Point);
+        nearNormal = disk1Normal;
+    }
+    else if (minI == 2) // Near to disk2
+    {
+        info.setPoint(disk2Point);
+        nearNormal = disk2Normal;
     }
 
     if (magSqr(sample - info.rawPoint()) < nearestDistSqr)
@@ -175,8 +211,6 @@ Foam::pointIndexHit Foam::searchableCone::findNearest
         info.setHit();
         info.setIndex(0);
     }
-
-    return info;
 }
 
 
@@ -581,7 +615,8 @@ void Foam::searchableCone::findNearest
 
     forAll(samples, i)
     {
-        info[i] = findNearest(samples[i], nearestDistSqr[i]);
+        vector normal;
+        findNearestAndNormal(samples[i], nearestDistSqr[i], info[i], normal);
     }
 }
 
@@ -698,43 +733,14 @@ void Foam::searchableCone::getNormal
     {
         if (info[i].hit())
         {
-            vector v(info[i].hitPoint() - point1_);
-
-            // Decompose sample-point1 into normal and parallel component
-            scalar parallel = (v & unitDir_);
-
-            // Remove the parallel component and normalise
-            v -= parallel*unitDir_;
-            scalar magV = mag(v);
-
-            if (parallel <= 0)
-            {
-                // either above endcap (magV<radius) or outside but closer
-                normal[i] = (magV-radius1_) < mag(parallel)
-                    ? -unitDir_
-                    : v/magV;
-            }
-            else if (parallel <= 0.5*magDir_)
-            {
-                // See if endcap closer or sidewall
-                normal[i] = (magV >= radius1_ || (radius1_-magV) < parallel)
-                    ? v/magV
-                    : -unitDir_;
-            }
-            else if (parallel <= magDir_)
-            {
-                // See if endcap closer or sidewall
-                normal[i] = 
-                    (magV >= radius1_ || (radius1_-magV) < (magDir_-parallel))
-                        ? v/magV
-                        : unitDir_; // closer to endcap
-            }
-            else    // beyond cylinder
-            {
-                normal[i] = ((magV-radius1_) < (parallel-magDir_))
-                        ? unitDir_ // above endcap
-                        : v/magV;
-            }
+            pointIndexHit nearInfo;
+            findNearestAndNormal
+            (
+                info[i].hitPoint(),
+                Foam::sqr(GREAT),
+                nearInfo,
+                normal[i]
+            );
         }
     }
 }

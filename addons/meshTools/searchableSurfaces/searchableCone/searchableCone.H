@@ -100,12 +100,15 @@ class searchableCone
         //- Inherit findNearest from searchableSurface
         using searchableSurface::findNearest;
 
-        //- Find nearest point on cone.
-        pointIndexHit findNearest
+        //- Find nearest point and normal on cone.
+        void findNearestAndNormal
         (
             const point& sample,
-            const scalar nearestDistSqr
+            const scalar nearestDistSqr,
+            pointIndexHit& info,
+            vector& nearNormal
         ) const;
+
 
         scalar radius2(const point& pt) const;
 
