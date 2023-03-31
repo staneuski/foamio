@@ -32,6 +32,13 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         default='*.vtp',
         help="glob pattern to match VTK-files (e.g.: '*_cutPlane.vtu')",
     )
+    parser.add_argument(
+        '--usenth',
+        '-un',
+        type=int,
+        default=None,
+        help='use every n-th file',
+    )
 
 
 def __validate(args: argparse.Namespace) -> None:
@@ -40,7 +47,10 @@ def __validate(args: argparse.Namespace) -> None:
                     if args.outfile is None else args.outfile.resolve())
 
 
-def __pvd(indir: Path, outfile: Path, pattern: str = '*.vtp') -> None:
+def __pvd(indir: Path,
+          outfile: Path,
+          pattern: str = '*.vtp',
+          use_nth: int = None) -> None:
     """Create ParaView .pvd-file from directory with time-step folders.
 
     Args:
@@ -48,6 +58,8 @@ def __pvd(indir: Path, outfile: Path, pattern: str = '*.vtp') -> None:
         outfile (Path): .pvd-file to generate.
         pattern (str, optional): Glob pattern to match VTK-files.
         Defaults to '*.vtp'.
+        use_nth (int, optional): Use every n-th file and skip others.
+        Defaults to None.
     """
 
     found_files = sorted(indir.rglob(pattern))
@@ -60,7 +72,11 @@ def __pvd(indir: Path, outfile: Path, pattern: str = '*.vtp') -> None:
 
     # Iterate over found files
     cellection = et.SubElement(root, 'Collection')
-    for found_file in found_files:
+    for n, found_file in enumerate(found_files):
+        if not use_nth is None and n % use_nth:
+            logging.debug(f'{found_file} skipped')
+            continue
+
         logging.debug(f'{found_file} found')
         et.SubElement(
             cellection,
@@ -78,4 +94,4 @@ def __pvd(indir: Path, outfile: Path, pattern: str = '*.vtp') -> None:
 
 def generate(args: argparse.Namespace) -> None:
     __validate(args)
-    __pvd(args.indir, args.outfile, pattern=args.pattern)
+    __pvd(args.indir, args.outfile, pattern=args.pattern, use_nth=args.usenth)
