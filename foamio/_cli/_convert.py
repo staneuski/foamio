@@ -71,11 +71,18 @@ def convert(args: argparse.Namespace) -> None:
     if args.inloc.is_file():
         logging.debug(f'direct convertion')
         __convert(infile := args.inloc, args.outfile, args.keep)
-        logging.info(f'{infile} converted')
+        logging.info(f'{infile} is converted')
         return
 
-    logging.debug(f'recursive convertion')
+    infiles = list(args.inloc.rglob('*.vtk'))
+    if not len(infiles):
+        logging.warning(
+            f'recursive convertion skipped: no files found in {args.inloc}')
+        return
+
     with concurrent.futures.ProcessPoolExecutor() as e:
+        logging.info(f'recursive convertion of {len(infiles)} files…')
+
         future_to_infile = {
             e.submit(
                 __convert,
@@ -83,7 +90,7 @@ def convert(args: argparse.Namespace) -> None:
                 infile.with_suffix('.vtp'),
                 args.keep,
             ): infile
-            for infile in args.inloc.rglob('*.vtk')
+            for infile in infiles
         }
 
         for future in concurrent.futures.as_completed(future_to_infile):
@@ -91,6 +98,8 @@ def convert(args: argparse.Namespace) -> None:
             try:
                 future.result()
             except Exception as exception:
-                logging.warning(f'conversion of {infile} raised an {exception=}')
-            else:
-                logging.info(f'{infile} converted')
+                logging.warning(
+                    f'conversion of {infile} raised an {exception=}')
+            logging.debug(f'{infile} is converted')
+
+        logging.info(f'found files have been converted in {args.inloc}')
