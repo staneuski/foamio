@@ -579,7 +579,7 @@ Foam::searchableCone::searchableCone
         dict.lookup("point1"),
         dict.lookup("point2"),
         dict.lookup<scalar>("radius1"),
-        dict.lookupOrDefault<scalar>("radius2", 0)
+        dict.lookupOrDefault<scalar>("radius2", small)
     )
 {
 }

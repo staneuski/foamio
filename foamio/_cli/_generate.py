@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import xml.etree.cElementTree as et
 from pathlib import Path
 
@@ -49,6 +50,9 @@ def __pvd(indir: Path, outfile: Path, pattern: str = '*.vtp') -> None:
         Defaults to '*.vtp'.
     """
 
+    found_files = sorted(indir.rglob(pattern))
+    logging.info(f'{len(found_files)} files matched the {pattern=} in {indir}')
+
     root = et.Element('VTKFile',
                       type='Collection',
                       byte_order='LittleEndian',
@@ -56,7 +60,8 @@ def __pvd(indir: Path, outfile: Path, pattern: str = '*.vtp') -> None:
 
     # Iterate over found files
     cellection = et.SubElement(root, 'Collection')
-    for found_file in sorted(indir.rglob(pattern)):
+    for found_file in found_files:
+        logging.debug(f'{found_file} found')
         et.SubElement(
             cellection,
             'DataSet',
@@ -68,6 +73,7 @@ def __pvd(indir: Path, outfile: Path, pattern: str = '*.vtp') -> None:
 
     tree = et.ElementTree(root)
     tree.write(outfile)
+    logging.info(f'{outfile} generated')
 
 
 def generate(args: argparse.Namespace) -> None:

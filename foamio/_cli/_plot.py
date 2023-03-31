@@ -120,7 +120,7 @@ def plot(args: argparse.Namespace) -> None:
                                       animate,
                                       interval=args.refresh * 1e+3)
 
-    plt.tight_layout()
+    # plt.tight_layout()
     if args.background:
         # Save to path with .png suffix either for folder name (e.g. to
         # functionObject folder name) or just replace .dat suffix with .png

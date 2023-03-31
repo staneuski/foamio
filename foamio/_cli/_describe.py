@@ -11,9 +11,8 @@ from foamio.dat import read
 def add_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         'loc',
-        metavar='FILE_OR_DIR',
         type=Path,
-        help='.dat-file path or directory with .dat-files.',
+        help='.dat-file path or directory with .dat-files',
     )
 
     parser.add_argument(

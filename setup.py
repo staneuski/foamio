@@ -6,12 +6,12 @@ from shutil import rmtree
 from setuptools import Command, setup
 
 NAME = 'foamio'
-DESCRIPTION = 'OpenFOAM routines.'
+DESCRIPTION = 'OpenFOAM i/o and addons.'
 URL = 'https://github.com/StasF1/foamio'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.6'
-VERSION = '0.3.0'
+VERSION = '0.3.1'
 
 REQUIRED = [
     'matplotlib',
@@ -70,6 +70,29 @@ class UploadCommand(Command):
         sys.exit()
 
 
+class Allwmake(Command):
+    """wmake addons library"""
+
+    description = 'wmake OpenFOAM addons library.'
+    user_options = []
+
+    @staticmethod
+    def status(s):
+        """Prints things in bold."""
+        print('\033[1m{0}\033[0m'.format(s))
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        self.status('Compiling OpenFOAM addons library…')
+        os.system(f'wmake {os.path.join(here, "addons")}')
+
+        sys.exit()
+
 setup(
     name=NAME,
     version=about['__version__'],
@@ -97,5 +120,6 @@ setup(
     # $ setup.py publish support.
     cmdclass={
         'upload': UploadCommand,
+        'wmake': Allwmake,
     },
 )

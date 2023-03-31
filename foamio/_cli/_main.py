@@ -3,6 +3,8 @@ from sys import version_info
 
 from foamio.__about__ import __version__
 from foamio._cli import _convert, _describe, _generate, _plot
+import logging
+from foamio._common import LOGGING_FORMAT
 
 
 def main(argv=None) -> argparse.Namespace:
@@ -12,6 +14,24 @@ def main(argv=None) -> argparse.Namespace:
         epilog=f'foamio v{__version__}'
         f' [Python {version_info.major}.{version_info.minor}.{version_info.micro}]'
         '\nCopyright (c) 2021-2023 Stanislau Stasheuski',
+    )
+
+    parent_parser.add_argument(
+        '-v',
+        '--verbose',
+        help='output information',
+        action='store_const',
+        dest='loglevel',
+        const=logging.INFO,
+    )
+    parent_parser.add_argument(
+        '-d',
+        '--debug',
+        help='print debug statements',
+        action='store_const',
+        dest='loglevel',
+        const=logging.DEBUG,
+        default=logging.WARNING,
     )
 
     subparsers = parent_parser.add_subparsers(title='subcommands',
@@ -41,5 +61,6 @@ def main(argv=None) -> argparse.Namespace:
     parser.set_defaults(func=_plot.plot)
 
     args = parent_parser.parse_args(argv)
+    logging.basicConfig(level=args.loglevel, format=LOGGING_FORMAT)
 
     return args.func(args)
