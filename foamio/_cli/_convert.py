@@ -7,8 +7,6 @@ from pathlib import Path
 
 import vtk
 
-from foamio._common import LOGGING_FORMAT
-
 SUPPORTED_SUFFIXES = dict(
     reader={'.vtk'},
     writer={'.vtp'},

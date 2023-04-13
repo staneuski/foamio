@@ -2,7 +2,7 @@ import argparse
 from sys import version_info
 
 from foamio.__about__ import __version__
-from foamio._cli import _convert, _describe, _generate, _plot
+from foamio._cli import _clean, _convert, _describe, _generate, _plot
 import logging
 from foamio._common import LOGGING_FORMAT
 
@@ -39,6 +39,11 @@ def main(argv=None) -> argparse.Namespace:
                                               required=True)
 
     help_tail = 'OpenFOAM/ParaView files'
+
+    clean = dict(aliases=['rm'], help=f'Clean {help_tail}')
+    parser = subparsers.add_parser('clean', **clean)
+    _clean.add_args(parser)
+    parser.set_defaults(func=_clean.clean)
 
     convert = dict(aliases=['c'], help=f'Convert {help_tail}')
     parser = subparsers.add_parser('convert', **convert)
