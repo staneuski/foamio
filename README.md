@@ -13,8 +13,15 @@ case name
     foamio convert $foam_case/postProcessing/cutPlanes && \
     foamio -v generate $foam_case/postProcessing/cutPlanes --pattern='*(z).vtp' --outfile=$foam_case/postProcessing/$(basename $foam_case).pvd
     ```
-- Clean up the case including `postProcessing/` before restart (`foamListTimes` is not possible to use in `postProcessing/` folder)
+- Clean up a case (including `postProcessing/`) from a particular time-step
     ```sh
     foam_case=<path>
-    foamio -v clean $foam_case/postProcessing/ --interval "$(foamDictionary -case $foam_case -processor -latestTime):"
+    foamio --debug clean $foam_case --interval '<time>:' --exclude-first && \
+    foamio clean $foam_case/postProcessing/ -i "$(foamListTimes -case $foam_case -latestTime):"
+    ```
+- Clean up a case (including `postProcessing/`) from a particular time-step but using `foamListTimes -rm`
+    ```sh
+    foam_case=<path>
+    foamListTimes -case $foam_case -time '<time>:' -rm && \
+    foamio clean $foam_case/postProcessing/ -i "$(foamListTimes -case $foam_case -latestTime):"
     ```

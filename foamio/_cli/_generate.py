@@ -63,6 +63,11 @@ def __pvd(indir: Path,
     """
 
     found_files = sorted(indir.rglob(pattern))
+    if not found_files:
+        logging.fatal(
+            f'no files matched the {pattern=} in {indir} - skipping…')
+        return
+
     logging.info(f'{len(found_files)} files matched the {pattern=} in {indir}')
 
     root = et.Element('VTKFile',
