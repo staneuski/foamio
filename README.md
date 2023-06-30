@@ -1,6 +1,9 @@
 # foam-addons
 ## `libaddons.so`
-OpenFOAM extension library.
+OpenFOAM extension library with utilities:
+```sh
+wmake -all ~/Developer/Projects/foamio/addons
+```
 
 ## foamio
 OpenFOAM addons, Python routines and helpers.

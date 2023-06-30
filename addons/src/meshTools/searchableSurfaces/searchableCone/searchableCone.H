@@ -2,24 +2,25 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Copyright (C) 2023 Aalto University
+    \\  /    A nd           | Copyright (C) 2015-2023 OpenFOAM Foundation
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
-    This file is part of foamio (OpenFOAM i/o and addons).
+    This file is originating from OpenFOAM and modified by the
+    authors described below.
 
-    foamio is free software: you can redistribute it and/or modify it
+    OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    foamio is distributed in the hope that it will be useful, but WITHOUT
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
     for more details.
 
     You should have received a copy of the GNU General Public License
-    along with foamio.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
     Foam::searchableCone
@@ -27,6 +28,12 @@ Class
 Description
     Surface geometry with a cone shape, which can be used with
     snappyHexMesh.
+
+Authors
+    Stanislau Stasheuski, Aalto University, 2023
+    stanislau.stasheuski@aalto.fi
+
+    Mark Olesen, ESI, 2020.
 
 Usage
     \table
