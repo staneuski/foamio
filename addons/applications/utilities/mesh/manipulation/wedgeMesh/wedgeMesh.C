@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createNamedPolyMesh.H"
-tr
+
     const label plane = parseComponent(args.argRead<word>(1)),
                 axis = parseComponent(args.argRead<word>(2));
     const scalar wedgeAngle = args.argRead<scalar>(3);
@@ -111,8 +111,6 @@ tr
             false
         )
     );
-
-    Info<< meshRegionSubDir << endl;
 
     const point midPoint = gAverage(points);
 
