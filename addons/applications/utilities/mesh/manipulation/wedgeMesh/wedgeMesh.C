@@ -71,6 +71,8 @@ label parseComponent(const word& axisName) {
 
 int main(int argc, char *argv[])
 {
+    #include "addRegionOption.H"
+
     argList::addNote
     (
         "Creates a wedge from a 2D cartesian mesh by specifying normals to wedge plane\n"
@@ -83,25 +85,34 @@ int main(int argc, char *argv[])
 
     #include "setRootCase.H"
     #include "createTime.H"
-    #include "createPolyMesh.H"
-
+    #include "createNamedPolyMesh.H"
+tr
     const label plane = parseComponent(args.argRead<word>(1)),
                 axis = parseComponent(args.argRead<word>(2));
     const scalar wedgeAngle = args.argRead<scalar>(3);
+
+    Foam::word meshRegionName = polyMesh::defaultRegion;
+    args.optionReadIfPresent("region", meshRegionName);
+
+    const fileName meshRegionSubDir = meshRegionName != polyMesh::defaultRegion
+        ? meshRegionName/polyMesh::meshSubDir
+        : fileName(polyMesh::meshSubDir);
 
     pointIOField points
     (
         IOobject
         (
             "points",
-            runTime.findInstance(polyMesh::meshSubDir, "points"),
-            polyMesh::meshSubDir,
+            runTime.findInstance(meshRegionSubDir, "points"),
+            meshRegionSubDir,
             runTime,
             IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
         )
     );
+
+    Info<< meshRegionSubDir << endl;
 
     const point midPoint = gAverage(points);
 
