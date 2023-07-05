@@ -43,7 +43,6 @@ Authors
 #include "polyMesh.H"
 #include "unitConversion.H"
 #include "emptyPolyPatch.H"
-#include "twoDPointCorrector.H"
 
 using namespace Foam;
 
@@ -114,11 +113,6 @@ int main(int argc, char *argv[])
 
     const point midPoint = gAverage(points);
 
-    const twoDPointCorrector& twoDCorr
-    (
-        twoDPointCorrector::New(mesh)
-    );
-
     Info<< "Wedge: " << wedgeAngle << " deg" << nl << endl;
 
     const scalar halfCos = Foam::cos(degToRad(0.5*wedgeAngle)),
@@ -150,8 +144,6 @@ int main(int argc, char *argv[])
 
         }
     }
-
-    twoDCorr.correctPoints(points);
 
     Info<< "Writing points into directory " << points.path() << nl << endl;
     points.write();

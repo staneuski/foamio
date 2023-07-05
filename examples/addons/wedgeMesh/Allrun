@@ -5,7 +5,7 @@ cd ${0%/*} || exit 1    # Run from this directory
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
 runApplication blockMesh
-runApplication wedgeMesh Z Y 5
+runApplication wedgeMesh Z Y 5 && \
 foamDictionary constant/polyMesh/boundary \
     -set "entry0/front/type=wedge, entry0/back/type=wedge"
 
