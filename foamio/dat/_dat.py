@@ -91,9 +91,6 @@ def read(filepath: Path | str,
     # Merge all .dat-files in the direcotry into one dataframe
     if filepath.is_dir():
         filepaths = list(filepath.rglob('*.dat'))
-        if len({fp.name for fp in filepaths}) != 1:
-            raise ValueError(f'{filepath} is not valid')
-
         df = pd.concat([_read(dat_file) for dat_file in sorted(filepaths)])
         return df[~df.index.duplicated(keep='last')]
 
