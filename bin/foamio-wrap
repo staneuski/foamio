@@ -82,6 +82,10 @@ do
         no_vtk=true
         shift 1
         ;;
+    --no-xz)
+        no_xz=true
+        shift 1
+        ;;
 
     --help | -h)
         usage && exit 0
@@ -126,7 +130,7 @@ command -v foamListTimes > /dev/null || error "OpenFOAM environment is not set"
 # Arguments:
 #   Case-insensetive logging level
 #   Message
-# 
+#
 # https://docs.python.org/3/library/logging.html#logging-levels
 #######################################
 function _logging() {
@@ -248,9 +252,6 @@ function archive_VTK() {
     _archive VTK ${_case}/ "${_list}"
 }
 
-#######################################
-# main
-#######################################
 [ ${no_mesh} != true ] && archive_mesh $case_dir &
 [ ${no_times} != true ] && archive_times $case_dir &
 [ ${no_logs} != true ] && archive_logs $case_dir &
@@ -261,12 +262,12 @@ wait
 find $case_dir -type d -empty -delete &
 rm -rf $case_dir/dynamicCode &
 
-if [ ${no-xz} != true ]; then
+if [ ${no_xz} != true ]; then
      _logging INFO "compressing logs*.tar, probes*.tar, graphs*.tar"
     [ $level -le 20 ] && args="--verbose" || args=""
-    find ${_case} -maxdepth 2 -type f \( \
+    find ${_case} -maxdepth 3 -type f \( \
         -iname 'logs*.tar' \
         -or -name 'graphs*.tar' \
         -or -name 'probes*.tar' \
-    \) -exec xz $args --threads=0 --compress -9e {} +
+    \) -exec unxz $args --threads=0 --compress -9e --force {} +
 fi
