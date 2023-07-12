@@ -4,13 +4,14 @@ import argparse
 import concurrent.futures
 import logging
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 
 from foamio._common import REGEX_DIGIT
-
+from foamio._helpers import remove
 
 @dataclass
 class Interval:
@@ -73,16 +74,6 @@ def __validate(args: argparse.Namespace) -> None:
         args.interval._rhs_less = np.less_equal
 
 
-def __rm_tree(tree: Path) -> None:
-    for child in tree.glob('*'):
-        if child.is_file():
-            child.unlink()
-            continue
-        __rm_tree(child)
-
-    tree.rmdir()
-
-
 def clean(args: argparse.Namespace) -> None:
     __validate(args)
 
@@ -106,7 +97,7 @@ def clean(args: argparse.Namespace) -> None:
             f'recursive deletion of {len(timesteps)} timestep directories…')
 
         future_to_dir = {
-            e.submit(__rm_tree, timestep): timestep
+            e.submit(remove, timestep): timestep
             for timestep in timesteps
             if args.interval.is_in(float(timestep.name))
         }

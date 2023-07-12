@@ -2,7 +2,7 @@ import argparse
 from sys import version_info
 
 from foamio.__about__ import __version__
-from foamio._cli import _clean, _convert, _describe, _generate, _plot
+from foamio._cli import _clean, _convert, _describe, _generate, _plot, _wrap
 import logging
 from foamio._common import LOGGING_FORMAT
 
@@ -38,32 +38,38 @@ def main(argv=None) -> argparse.Namespace:
                                               dest='command',
                                               required=True)
 
-    help_tail = 'OpenFOAM/ParaView files'
+    help_case = 'OpenFOAM case (including postProcessing/ directory)'
+    help_dat = 'OpenFOAM functionObject (or directory with .dat-files)'
 
-    clean = dict(aliases=['rm'], help=f'Clean {help_tail}')
+    clean = dict(aliases=['rm'], help=f'Clean {help_case}')
     parser = subparsers.add_parser('clean', **clean)
     _clean.add_args(parser)
     parser.set_defaults(func=_clean.clean)
 
-    convert = dict(aliases=['c'], help=f'Convert {help_tail}')
+    convert = dict(aliases=['c'], help=f'Convert OpenFOAM files')
     parser = subparsers.add_parser('convert', **convert)
     _convert.add_args(parser)
     parser.set_defaults(func=_convert.convert)
 
-    generate = dict(aliases=['g'], help=f'Generate {help_tail}')
+    generate = dict(aliases=['g'], help=f'Generate ParaView files (.pvd-file)')
     parser = subparsers.add_parser('generate', **generate)
     _generate.add_args(parser)
     parser.set_defaults(func=_generate.generate)
 
-    describe = dict(aliases=['d'], help=f'Describe {help_tail}')
+    describe = dict(aliases=['d'], help=f'Describe {help_dat}')
     parser = subparsers.add_parser('describe', **describe)
     _describe.add_args(parser)
     parser.set_defaults(func=_describe.describe)
 
-    plot = dict(aliases=['p'], help=f'Plot {help_tail}')
+    plot = dict(aliases=['p'], help=f'Plot {help_dat}')
     parser = subparsers.add_parser('plot', **plot)
     _plot.add_args(parser)
     parser.set_defaults(func=_plot.plot)
+
+    wrap = dict(aliases=['w'], help=f'Wrap {help_case}')
+    parser = subparsers.add_parser('wrap', **wrap)
+    _wrap.add_args(parser)
+    parser.set_defaults(func=_wrap.wrap)
 
     args = parent_parser.parse_args(argv)
     logging.basicConfig(level=args.loglevel, format=LOGGING_FORMAT)
