@@ -11,7 +11,7 @@ URL = 'https://github.com/StasF1/foamio'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.6'
-VERSION = '0.4.0'
+VERSION = '0.4.1'
 
 REQUIRED = [
     'matplotlib',
@@ -93,6 +93,7 @@ class Allwmake(Command):
 
         sys.exit()
 
+
 setup(
     name=NAME,
     version=about['__version__'],
@@ -107,7 +108,7 @@ setup(
     entry_points={
         'console_scripts': ['foamio = foamio._cli:main'],
     },
-    scripts=[],
+    scripts=['bin/foamio-wrap'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
