@@ -2,7 +2,6 @@
 # Source tutorial run functions
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-# Copy flange surface from resources directory
 runApplication blockMesh
 runApplication snappyHexMesh -overwrite
 
