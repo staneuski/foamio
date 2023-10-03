@@ -32,12 +32,6 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         action='store_true',
         help='keep input file',
     )
-    parser.add_argument(
-        '-v',
-        '--verbose',
-        action='store_true',
-        help='verbose',
-    )
 
 
 def __validate(args: argparse.Namespace) -> None:

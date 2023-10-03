@@ -1,10 +1,4 @@
-# foam-addons
-## `libaddons.so`
-OpenFOAM extension library with utilities:
-```sh
-wmake -all ~/Developer/Projects/foamio/addons
-```
-
+# addons
 ## foamio
 OpenFOAM addons, Python routines and helpers.
 
@@ -28,3 +22,23 @@ case name
     foamListTimes -case $foam_case -time '<time>:' -rm && \
     foamio clean $foam_case/postProcessing/ -i "$(foamListTimes -case $foam_case -latestTime):"
     ```
+
+## `libaddons.so`
+OpenFOAM extension library with utilities:
+```sh
+wmake -all ~/Developer/Projects/foamio/addons
+```
+
+## addons
+Add custom #includeEtc dictionaries by setting `WM_PROJECT_SITE`
+```sh
+export WM_PROJECT_SITE=$HOME/Documents/foamio/addons
+```
+
+## ParaView
+Animate ParaView state using `pvbatch`:
+```sh
+pvbatch $WM_PROJECT_SITE/etc/visualise.py state.pvsm animate /tmp/frames/U.png --dict $WM_PROJECT_SITE/etc/caseDicts/postProcessing/visualisation/animation.png.json &&
+ffmpeg -y -framerate 10 -pattern_type glob -i "/tmp/frames/U.*.png" -c:v libx264 postProcessing/U.avi &&
+rm -rf /tmp/frames/U.*.png
+```
