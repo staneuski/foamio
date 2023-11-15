@@ -6,12 +6,12 @@ from shutil import rmtree
 from setuptools import Command, setup
 
 NAME = 'foamio'
-DESCRIPTION = 'OpenFOAM i/o and addons.'
+DESCRIPTION = 'OpenFOAM i/o and Python CLI.'
 URL = 'https://github.com/staneuski/foamio'
 EMAIL = 'stanislau.stasheuski@gmail.com'
 AUTHOR = 'Stanislau Stasheuski'
 REQUIRES_PYTHON = '>=3.6'
-VERSION = '0.5.0'
+VERSION = '0.5.1'
 
 REQUIRED = [
     'matplotlib',
