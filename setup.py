@@ -108,7 +108,6 @@ setup(
     entry_points={
         'console_scripts': ['foamio = foamio._cli:main'],
     },
-    scripts=['bin/foamio-wrap'],
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
