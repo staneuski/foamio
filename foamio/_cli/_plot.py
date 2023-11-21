@@ -54,7 +54,7 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         '--usecols',
         '-uc',
         type=int,
-        nargs='',
+        nargs='+',
         help='column indices to plot (index starting from 1)',
     )
     parser.add_argument(
