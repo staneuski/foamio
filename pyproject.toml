@@ -1,0 +1,56 @@
+[project]
+name = "foamio"
+version = "0.5.x"
+description = "OpenFOAM i/o and Python CLI"
+readme = "README.md"
+requires-python = ">=3.6"
+license = {file = "LICENSE"}
+keywords = [
+  "mesh", "file formats", "scientific", "engineering", "finite volume method", "OpenFOAM"]
+authors = [
+  {name = "Stanislau Stasheuski"},
+  {email = "stanislau.stasheuski@gmail.com"}
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Utilities"
+]
+dependencies = [
+  "importlib_metadata; python_version<'3.8'",
+  "matplotlib",
+  "numpy",
+  "pandas",
+  "vtk"
+]
+
+[project.optional-dependencies]
+all = []
+
+[project.urls]
+homepage = "https://github.com/staneuski/foamio"
+code = "https://github.com/staneuski/foamio"
+issues = "https://github.com/staneuski/foamio/issues"
+funding = "https://github.com/sponsors/staneuski"
+
+[project.entry-points.console_scripts]
+foamio = "foamio._cli:main"
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# [tool.isort]
+# profile = "black"
