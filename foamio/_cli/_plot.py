@@ -107,8 +107,7 @@ def plot(args: argparse.Namespace) -> None:
         )
 
     def animate(frame: int = 0) -> None:
-        if frame != 0:
-            ax.clear()
+        ax.clear()
         logging.debug(f'animate {frame=}')
         __plot(ax, args)
 
@@ -125,10 +124,8 @@ def plot(args: argparse.Namespace) -> None:
     if args.refresh and not args.background:
         ani = animation.FuncAnimation(
             fig=fig,
-            init_func=animate,
             func=animate,
             save_count=1,
-            # cache_frame_data=False,
             interval=1e3 * args.refresh,
         )
         logging.debug(f'{ani._draw_was_started=}')
