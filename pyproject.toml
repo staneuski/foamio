@@ -1,6 +1,6 @@
 [project]
 name = "foamio"
-version = "0.5.x"
+version = "0.5.2"
 description = "OpenFOAM i/o and Python CLI"
 readme = "README.md"
 requires-python = ">=3.6"
