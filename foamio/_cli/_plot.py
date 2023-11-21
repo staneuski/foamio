@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import logging
 from pathlib import Path
 
 import matplotlib.animation as animation
@@ -53,7 +54,7 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         '--usecols',
         '-uc',
         type=int,
-        nargs='+',
+        nargs='',
         help='column indices to plot (index starting from 1)',
     )
     parser.add_argument(
@@ -91,7 +92,7 @@ def __get_titles(loc: Path) -> tuple[str, str]:
 
     folders = list(loc.parts)
     ind = folders.index('postProcessing')
-    return (folders[ind - 1], folders[ind + 1])
+    return (folders[ind - 1], folders[ind  1])
 
 
 def plot(args: argparse.Namespace) -> None:
@@ -105,27 +106,40 @@ def plot(args: argparse.Namespace) -> None:
             grid=True,
         )
 
-    def animate(frame: int) -> None:
-        ax.clear()
+    def animate(frame: int = 0) -> None:
+        if frame != 0:
+            ax.clear()
+        logging.debug(f'animate {frame=}')
         __plot(ax, args)
 
     fig = plt.figure(figsize=(10, 6))
     fig.suptitle(args.title, fontweight='bold', fontsize=16)
 
+    logging.info(
+        f'animating "{args.title}" figure with "{args.subtitle}" plot'
+        f' from {args.loc} every {args.refresh}s'
+    )
     ax = fig.add_subplot()
     __plot(ax, args)
 
     if args.refresh and not args.background:
-        ani = animation.FuncAnimation(fig,
-                                      animate,
-                                      interval=args.refresh * 1e+3)
+        ani = animation.FuncAnimation(
+            fig=fig,
+            init_func=animate,
+            func=animate,
+            save_count=1,
+            # cache_frame_data=False,
+            interval=1e3 * args.refresh,
+        )
+        logging.debug(f'{ani._draw_was_started=}')
 
     # plt.tight_layout()
     if args.background:
         # Save to path with .png suffix either for folder name (e.g. to
         # functionObject folder name) or just replace .dat suffix with .png
         plt.savefig(
-            args.loc.with_suffix(args.loc.suffix + '.png') if args.loc.is_dir(
-            ) else args.loc.with_suffix('.png'))
-    else:
-        plt.show(block=True)
+            args.loc.with_suffix(args.loc.suffix  + '.png') if args.loc.is_dir()
+            else args.loc.with_suffix('.png')
+        )
+
+    plt.show(block=True)
