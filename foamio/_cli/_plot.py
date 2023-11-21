@@ -92,7 +92,7 @@ def __get_titles(loc: Path) -> tuple[str, str]:
 
     folders = list(loc.parts)
     ind = folders.index('postProcessing')
-    return (folders[ind - 1], folders[ind  1])
+    return (folders[ind - 1], folders[ind + 1])
 
 
 def plot(args: argparse.Namespace) -> None:
@@ -138,7 +138,7 @@ def plot(args: argparse.Namespace) -> None:
         # Save to path with .png suffix either for folder name (e.g. to
         # functionObject folder name) or just replace .dat suffix with .png
         plt.savefig(
-            args.loc.with_suffix(args.loc.suffix  + '.png') if args.loc.is_dir()
+            args.loc.with_suffix(args.loc.suffix + '.png') if args.loc.is_dir()
             else args.loc.with_suffix('.png')
         )
 
