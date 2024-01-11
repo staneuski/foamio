@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import os
 import logging
 import subprocess
 from pathlib import Path
 
 
 class Caller:
-    """Naive OpenFOAM wrapper which uses `foamExec` Python's `subprocess`, e.g.:
+    """Naive OpenFOAM wrapper which uses `foamExec` through Python's
+    `subprocess`, e.g.:
     - `Caller().Run(solver='incompressibleFluid')` will call
     `$ foamExec foamRun -solver incompressibleFluid`
     - `Caller().blockMesh()` will call `$ foamExec blockMesh`
@@ -15,8 +17,7 @@ class Caller:
     """
 
     def __init__(self,
-                 wm_project_dir: str
-                 | Path = f'{Path.home()}/.local/opt/OpenFOAM-dev',
+                 wm_project_dir: str | Path = None,
                  invert_args: bool = True,
                  **kwargs) -> None:
         """
@@ -25,7 +26,7 @@ class Caller:
 
         Args:
             wm_project_dir (str | Path, optional): OpenFOAM project directory.
-            Defaults to '~/.local/opt/OpenFOAM-dev'.
+            Defaults to `WM_PROJECT_DIR` environment variable.
             invert_args (bool, optional): are key-word arguments followed by
             word arguments, e.g.
             `Caller(invert_args=True).Dictionary('system/controlDict', expand=True)`
@@ -34,15 +35,19 @@ class Caller:
             is calling `$ foamDictionary constant/polyMesh/boundary -set "entry0/front/type=wedge"`.
             Defaults to True.
         """
-        self.project_dir = wm_project_dir
+
+        self.project_dir = (
+            self.__find_project_dir() if wm_project_dir is None else
+            wm_project_dir
+        )
         self.invert_args = invert_args
         self.__kwargs = kwargs
 
     def __getattr__(self, cmd: str):
 
         def wrapper(*args, **kwargs):
-            # Since OpenFOAM uses lower-camel case capitalised calls
-            # are prepended with 'foam'
+            # Calls are prepended with 'foam' since OpenFOAM uses lower-camel
+            # capitalised case
             return self._call(
                 f'foam{cmd}' if cmd.istitle() else cmd,
                 *args,
@@ -50,6 +55,26 @@ class Caller:
             )
 
         return wrapper
+
+    @staticmethod
+    def __find_project_dir() -> Path:
+        """Find an OpenFOAM project by using the `WM_PROJECT_DIR` environment
+        variable.
+
+        Raises:
+            KeyError: no `WM_PROJECT_DIR` in `PATH`.
+            FileNotFoundError: `WM_PROJECT_DIR` points to unexisting location.
+
+        Returns:
+            bool: `WM_PROJECT_DIR`
+        """
+
+        if not Path(os.environ['WM_PROJECT_DIR']).is_dir():
+            raise FileNotFoundError(
+                f'{os.environ["WM_PROJECT_DIR"]=} is not found'
+            )
+
+        return Path(os.environ['WM_PROJECT_DIR'])
 
     @staticmethod
     def __convert_kwargs(**kwargs) -> list[str]:
@@ -65,8 +90,7 @@ class Caller:
 
         return args
 
-    def _call(self, cmd: str, *args,
-              **kwargs) -> subprocess.CompletedProcess[int]:
+    def _call(self, cmd: str, *args, **kwargs) -> subprocess.CompletedProcess[int]:
         str_args = [f'{self.project_dir}/bin/./foamExec', cmd]
         if not self.invert_args:
             str_args += ([str(arg)
