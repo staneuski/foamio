@@ -138,5 +138,6 @@ def plot(args: argparse.Namespace) -> None:
             args.loc.with_suffix(args.loc.suffix + '.png') if args.loc.is_dir()
             else args.loc.with_suffix('.png')
         )
+        return
 
     plt.show(block=True)
