@@ -102,8 +102,10 @@ def read(filepath: Path | str,
 def write(fname: Path | str,
           dat: np.ndarray,
           *,
+          compression: bool = False,
+          header: str = None,
           dims: bool = False,
-          compression: bool = False) -> None:
+          footer: str = None) -> None:
     """Write n-dimensional array to .dat-file.
 
     Args:
@@ -114,13 +116,15 @@ def write(fname: Path | str,
     """
 
     np.set_printoptions(threshold=sys.maxsize)
-    sdat = re.sub(
-        r'\s+',
-        ' ',
-        np.array2string(dat, max_line_width=None, floatmode='maxprec')
-    ).replace('\n', '').replace('[', '(').replace(']', ')')
-    if dims:
-        sdat = f'{" ".join(str(d) for d in dat.shape)} {sdat}'
+
+    sdat = ' '.join(str(d) for d in dat.shape) if dims else ''
+    sdat += ' '
+    sdat += (np.array2string(dat, max_line_width=None, floatmode='maxprec')
+             .replace('\n', '')
+             .replace('[', '(').replace(']', ')'))
+    sdat = ((header if not header is None else '') +
+            re.sub(r'\s+', ' ', sdat).strip() +
+            (footer if not footer is None else ''))
     if compression:
         with gzip.open(fname, 'wt') as f:
             f.write(sdat)

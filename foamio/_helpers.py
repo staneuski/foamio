@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import linecache
 import shutil
 from pathlib import Path
@@ -18,3 +19,14 @@ def remove(tree: Path) -> None:
         return
 
     shutil.rmtree(tree)
+
+def require_range(nmin, nmax):
+    class RequiredLength(argparse.Action):
+        def __call__(self, parser, args, values, option_string=None):
+            if not nmin <= len(values) <= nmax:
+                raise argparse.ArgumentTypeError(
+                    f'argument "{self.dest}" requires '
+                    f'between {nmin} and {nmax} arguments'
+                )
+            setattr(args, self.dest, values)
+    return RequiredLength

@@ -22,3 +22,17 @@ case name
     foamListTimes -case $foam_case -time '<time>:' -rm && \
     foamio clean $foam_case/postProcessing/ -i "$(foamListTimes -case $foam_case -latestTime):"
     ```
+- Create tabulated entry for _physicalProperties_ using [`CoolProp`](http://coolprop.org/):
+    ```sh
+    foamio -v tabulate H2O constant/ --pressure 1e+05 5e+06 2500 --temperature 293.15 393.15 100 --entries DMASS HMASS CPMASS CVMASS VISCOSITY CONDUCTIVITY
+    ```
+    Generated entry can be imported in `mixture` dictionary as:
+    ```cpp
+    equationOfState
+    {
+        rho
+        {
+            #include "H2O.DMASS"
+        }
+    }
+    ```

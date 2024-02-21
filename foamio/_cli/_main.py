@@ -3,7 +3,7 @@ import logging
 from sys import version_info
 
 from foamio.__about__ import __version__
-from foamio._cli import _clean, _convert, _describe, _generate, _plot
+from foamio._cli import _clean, _convert, _describe, _generate, _plot, _tabulate
 from foamio._common import LOGGING_FORMAT
 
 
@@ -13,7 +13,7 @@ def main(argv=None) -> argparse.Namespace:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog=f'foamio v{__version__}'
         f' [Python {version_info.major}.{version_info.minor}.{version_info.micro}]'
-        '\nCopyright (c) 2021-2023 Stanislau Stasheuski',
+        '\nCopyright (c) 2021-2024 Stanislau Stasheuski',
     )
 
     parent_parser.add_argument(
@@ -65,6 +65,11 @@ def main(argv=None) -> argparse.Namespace:
     parser = subparsers.add_parser('plot', **plot)
     _plot.add_args(parser)
     parser.set_defaults(func=_plot.plot)
+
+    tabulate = dict(aliases=['t'], help=f'Create tabulated entry with CoolProp')
+    parser = subparsers.add_parser('tabulate', **tabulate)
+    _tabulate.add_args(parser)
+    parser.set_defaults(func=_tabulate.tabulate)
 
     args = parent_parser.parse_args(argv)
     logging.basicConfig(level=args.loglevel, format=LOGGING_FORMAT)
