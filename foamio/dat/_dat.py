@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import re
 import gzip
+import re
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -112,12 +113,12 @@ def write(fname: Path | str,
         compression (bool, optional): gzip file. Defaults to False.
     """
 
-    sdat = (np.array2string(dat, max_line_width=None)
-            .replace('\n', '')
-            .replace('[', '(')
-            .replace(']', ')'))
-    sdat = re.sub(r'\s+\(', '(', sdat)
-
+    np.set_printoptions(threshold=sys.maxsize)
+    sdat = re.sub(
+        r'\s+',
+        ' ',
+        np.array2string(dat, max_line_width=None, floatmode='maxprec')
+    ).replace('\n', '').replace('[', '(').replace(']', ')')
     if dims:
         sdat = f'{" ".join(str(d) for d in dat.shape)} {sdat}'
     if compression:
