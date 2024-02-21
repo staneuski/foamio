@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import gzip
 from pathlib import Path
 
 import numpy as np
@@ -95,3 +96,33 @@ def read(filepath: Path | str,
         return df[~df.index.duplicated(keep='last')]
 
     return _read(filepath)
+
+
+def write(fname: Path | str,
+          dat: np.ndarray,
+          *,
+          dims: bool = False,
+          compression: bool = False) -> None:
+    """Write n-dimensional array to .dat-file.
+
+    Args:
+        fname (Path | str): path to .dat-file
+        dat (np.ndarray): data to be saved to a .dat-file.
+        dims (bool, optional): prepend dimensions. Defaults to False.
+        compression (bool, optional): gzip file. Defaults to False.
+    """
+
+    sdat = (np.array2string(dat, max_line_width=None)
+            .replace('\n', '')
+            .replace('[', '(')
+            .replace(']', ')'))
+    sdat = re.sub(r'\s+\(', '(', sdat)
+
+    if dims:
+        sdat = f'{" ".join(str(d) for d in dat.shape)} {sdat}'
+    if compression:
+        with gzip.open(fname, 'wt') as f:
+            f.write(sdat)
+    else:
+        with open(fname, 'w') as f:
+            f.write(sdat)
