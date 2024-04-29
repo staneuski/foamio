@@ -65,6 +65,7 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         help="CoolProp.PropsSI phase name ('gas' or 'liquid')",
     )
 
+
 def __fill(qs: Quantities,
            fluid: str,
            entry: str,
@@ -131,7 +132,7 @@ def tabulate(args: argparse.Namespace) -> None:
             e.submit(
                 write,
                 Path(args.outdir, f'{args.fluid}.{entry}.gz'),
-                __fill(qs, args.fluid, entry, args.phase),
+                __fill(qs, args.fluid, entry, args.phase).T,
                 header=f'/* PropsSI("{entry}", … "T|{args.phase}", … "{args.fluid}") */ '
                        f'{header}',
                 compression=True,
