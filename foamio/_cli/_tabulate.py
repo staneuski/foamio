@@ -113,9 +113,10 @@ def __fill(qs: Quantities,
                 logging.warning(
                     f'filling {entry=} at {i=} ({qs.T[i]=}) raised an {exception=}')
     if clamp:
+        is_finite = np.isfinite(values)
         values[np.isneginf(values)], values[np.isposinf(values)] = (
-            np.nanmin(values),
-            np.nanmax(values),
+            np.min(values[is_finite]),
+            np.max(values[is_finite]),
         )
     return values
 
@@ -127,7 +128,6 @@ def __validate(args: argparse.Namespace) -> None:
 
     args.pressure[2] = int(args.pressure[2])
     args.temperature[2] = int(args.temperature[2])
-
 
 def tabulate(args: argparse.Namespace) -> None:
     __validate(args)
