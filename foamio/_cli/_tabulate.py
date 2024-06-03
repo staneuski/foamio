@@ -64,12 +64,19 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         type=str,
         help="CoolProp.PropsSI phase name ('gas' or 'liquid')",
     )
+    parser.add_argument(
+        '--clamp',
+        '-c',
+        action='store_true',
+        help='Clamp -inf, +inf to min, max',
+    )
 
 
 def __fill(qs: Quantities,
            fluid: str,
            entry: str,
-           phase: str = None) -> np.ndarray:
+           phase: str = None,
+           clamp: str = True) -> np.ndarray:
     """Fill array (pressure and temperature) for selected CoolProp quantity.
 
     Args:
@@ -78,6 +85,8 @@ def __fill(qs: Quantities,
         entry (str): CoolProp quantity name, e.g. 'CPMASS'
         phase (str, optional): CoolProp phase name ('gas' or 'liquid').
         Defaults to None.
+        clamp (bool, optional): Replace -inf, +inf with min, max finite values.
+        Defaults to False.
 
     Returns:
         np.ndarray: filled-in quantity
@@ -103,6 +112,11 @@ def __fill(qs: Quantities,
             except Exception as exception:
                 logging.warning(
                     f'filling {entry=} at {i=} ({qs.T[i]=}) raised an {exception=}')
+    if clamp:
+        values[np.isneginf(values)], values[np.isposinf(values)] = (
+            np.nanmin(values),
+            np.nanmax(values),
+        )
     return values
 
 
@@ -132,7 +146,7 @@ def tabulate(args: argparse.Namespace) -> None:
             e.submit(
                 write,
                 Path(args.outdir, f'{args.fluid}.{entry}.gz'),
-                __fill(qs, args.fluid, entry, args.phase).T,
+                __fill(qs, args.fluid, entry, args.phase, args.clamp).T,
                 header=f'/* PropsSI("{entry}", … "T|{args.phase}", … "{args.fluid}") */ '
                        f'{header}',
                 compression=True,
