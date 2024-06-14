@@ -3,12 +3,12 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import logging
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
-import yaml
-from CoolProp.CoolProp import PropsSI
+import CoolProp.CoolProp as cp
 
 from foamio._helpers import require_range
 from foamio.dat import write
@@ -18,6 +18,13 @@ class Quantities:
     p: int | float | np.ndarray = None
     T: int | float | np.ndarray = None
 
+
+cp.set_config_string(cp.ALTERNATIVE_REFPROP_HMX_BNC_PATH,
+                     os.getenv('REFPROP_HMX_BNC_PATH'))
+cp.set_config_string(cp.ALTERNATIVE_REFPROP_PATH,
+                     os.getenv('REFPROP_PATH'))
+cp.set_config_string(cp.ALTERNATIVE_REFPROP_LIBRARY_PATH,
+                     os.getenv('REFPROP_LIBRARY_PATH'))
 
 
 def add_args(parser: argparse.ArgumentParser) -> None:
@@ -96,7 +103,7 @@ def __fill(qs: Quantities,
     with concurrent.futures.ThreadPoolExecutor() as e:
         future_to_indrow = {
             e.submit(
-                PropsSI, entry,
+                cp.PropsSI, entry,
                 'P' if phase is None else f'P|{phase}', qs.p,
                 'T', T_row,
                 fluid
@@ -129,6 +136,7 @@ def __validate(args: argparse.Namespace) -> None:
     args.pressure[2] = int(args.pressure[2])
     args.temperature[2] = int(args.temperature[2])
 
+
 def tabulate(args: argparse.Namespace) -> None:
     __validate(args)
 
@@ -147,7 +155,7 @@ def tabulate(args: argparse.Namespace) -> None:
                 write,
                 Path(args.outdir, f'{args.fluid}.{entry}.gz'),
                 __fill(qs, args.fluid, entry, args.phase, args.clamp).T,
-                header=f'/* PropsSI("{entry}", … "T|{args.phase}", … "{args.fluid}") */ '
+                header=f'/* cp.PropsSI("{entry}", … "T|{args.phase}", … "{args.fluid}") */ '
                        f'{header}',
                 compression=True,
                 dims=True,

@@ -34,7 +34,7 @@ def read(root: Path | str,
     `foamDictionary`.
 
     Args:
-        root (Path | str): OpenFOAM case.
+        root (Path | str): FOAM_CASE path.
         fname (Path | str): Path to OpenFOAM dictionary.
         encoding (str, optional): Encoding. Defaults to 'utf-8'.
 
