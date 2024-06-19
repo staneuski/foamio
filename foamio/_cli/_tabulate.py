@@ -20,11 +20,11 @@ class Quantities:
 
 
 cp.set_config_string(cp.ALTERNATIVE_REFPROP_HMX_BNC_PATH,
-                     os.getenv('REFPROP_HMX_BNC_PATH'))
+                     os.getenv('REFPROP_HMX_BNC_PATH', ''))
 cp.set_config_string(cp.ALTERNATIVE_REFPROP_PATH,
-                     os.getenv('REFPROP_PATH'))
+                     os.getenv('REFPROP_PATH', ''))
 cp.set_config_string(cp.ALTERNATIVE_REFPROP_LIBRARY_PATH,
-                     os.getenv('REFPROP_LIBRARY_PATH'))
+                     os.getenv('REFPROP_LIBRARY_PATH', ''))
 
 
 def add_args(parser: argparse.ArgumentParser) -> None:

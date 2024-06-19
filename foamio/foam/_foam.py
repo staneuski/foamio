@@ -11,10 +11,10 @@ def _convert(value: str) -> str | list:
     Convertion of lists is not implemented.
 
     Args:
-        value (str): OpenFOAM dictionary value.
+        value (str): OpenFOAM dictionary value
 
     Returns:
-        str | list: Converted value.
+        str | list: converted value
     """
 
     value = value.rstrip() # drop end line charecters
@@ -34,12 +34,12 @@ def read(root: Path | str,
     `foamDictionary`.
 
     Args:
-        root (Path | str): FOAM_CASE path.
-        fname (Path | str): Path to OpenFOAM dictionary.
-        encoding (str, optional): Encoding. Defaults to 'utf-8'.
+        root (Path | str): FOAM_CASE path
+        fname (Path | str): Path to OpenFOAM dictionary
+        encoding (str, optional): encoding. Defaults to 'utf-8'.
 
     Returns:
-        dict: OpenFOAM dictionary converted to Python `dict`.
+        dict: OpenFOAM dictionary converted to Python `dict`
     """
 
     root = Path(root).resolve()

@@ -11,7 +11,7 @@ from foamio._common import REGEX_DIGIT
 
 
 def __get_header_size(filepath: Path | str, comment: str = '#') -> int:
-    """Get header size."""
+    """Get header size"""
 
     with open(filepath) as f:
         for index, line in enumerate(f):
@@ -21,7 +21,7 @@ def __get_header_size(filepath: Path | str, comment: str = '#') -> int:
 
 
 def __unnest_columns(dat: pd.DataFrame) -> pd.DataFrame:
-    """Unnest non-scalar field values to components."""
+    """Unnest non-scalar field values to components"""
 
     nested_columns: list = []
     for key, column_dtype in zip(dat, dat.dtypes):
@@ -50,20 +50,20 @@ def read(filepath: Path | str,
          *,
          usecols: list | None = None,
          use_nth: int | None = None) -> pd.DataFrame:
-    """Read OpenFOAM post-processing .dat file as pandas DataFrame.
+    """Read OpenFOAM post-processing .dat file as pandas DataFrame
 
     Args:
-        filepath (Path | str): Path to .dat-file of directory
-        with .dat-files.
-        usecols (list[int], optional): Columns to read (starting with 1).
+        filepath (Path | str): path to .dat-file of directory
+        with .dat-files
+        usecols (list[int], optional): columns to read (starting with 1).
         Defaults to None.
-        use_nth (int, optional): Read every n-th row. Defaults to None.
+        use_nth (int, optional): read every n-th row. Defaults to None.
 
     Raises:
-        ValueError: Raised when .dat-file path is invalid.
+        ValueError: raised when .dat-file path is invalid
 
     Returns:
-        pd.DataFrame: Converted to DataFrame .dat-file.
+        pd.DataFrame: converted to DataFrame .dat-file
     """
 
     def _read(filepath: Path) -> pd.DataFrame:
@@ -110,7 +110,7 @@ def write(fname: Path | str,
 
     Args:
         fname (Path | str): path to .dat-file
-        dat (np.ndarray): data to be saved to a .dat-file.
+        dat (np.ndarray): data to be saved to a .dat-file
         dims (bool, optional): prepend dimensions. Defaults to False.
         compression (bool, optional): gzip file. Defaults to False.
     """

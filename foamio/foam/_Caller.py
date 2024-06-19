@@ -22,7 +22,7 @@ class Caller:
                  **kwargs) -> None:
         """
         Forwards each keyword argument to `subprocess.run` besides specified
-        below.
+        below
 
         Args:
             wm_project_dir (str | Path, optional): OpenFOAM project directory.
@@ -59,11 +59,11 @@ class Caller:
     @staticmethod
     def __find_project_dir() -> Path:
         """Find an OpenFOAM project by using the `WM_PROJECT_DIR` environment
-        variable.
+        variable
 
         Raises:
-            KeyError: no `WM_PROJECT_DIR` in `PATH`.
-            FileNotFoundError: `WM_PROJECT_DIR` points to unexisting location.
+            KeyError: no `WM_PROJECT_DIR` in `PATH`
+            FileNotFoundError: `WM_PROJECT_DIR` points to unexisting location
 
         Returns:
             bool: `WM_PROJECT_DIR`

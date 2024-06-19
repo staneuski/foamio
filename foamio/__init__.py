@@ -1,4 +1,4 @@
-from foamio import _cli, dat, foam
+from foamio import _cli, dat, foam, gridpro
 from foamio.__about__ import __version__
 
 __all__ = [
@@ -6,4 +6,5 @@ __all__ = [
     '_cli',
     'dat',
     'foam',
+    'gridpro',
 ]

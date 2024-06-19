@@ -4,7 +4,6 @@ import argparse
 import concurrent.futures
 import logging
 import re
-import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
