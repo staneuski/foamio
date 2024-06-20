@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import subprocess
 from pathlib import Path
+from typing import Iterable
 
 import gp_utilities as gp
 from foamio.gridpro._helpers import _execute as execute
@@ -124,6 +125,26 @@ def extrude(infile: Path | str,
         raise ValueError('either `distance` or `cell_count` must be provided')
 
     execute(infile, sargs + ['-outfn', str(outfile)])
+
+
+def set_cell_size(grd_file: Path | str, surfaces: Iterable[int],
+                  cell_size: float) -> None:
+    """Set first cell size at the given surfaces.
+
+    Args:
+        grd_file (Path | str): input GridPro .grd-grid file
+        surfaces (Iterable[int]): list of surface indices
+        cell_size (float): first cell size
+    """
+
+    grd_file = Path(grd_file).resolve()
+    # yapf: disable
+    sargs = ['gp_utilities', 'first_cell_spacing',
+             '-ifn', grd_file.name,
+             '-s', ' '.join(map(str, surfaces)),
+             '-cs', str(cell_size)]
+    # yapf: enable
+    execute(grd_file, sargs)
 
 
 def scale(infile: Path | str, factor: int, outfile: Path | str = None) -> None:

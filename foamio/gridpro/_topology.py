@@ -21,8 +21,22 @@ def _execute(topology: gp.Topology,
     topology.execute(' '.join(map(str, sargs)))
 
 
+def get_corners(topology: gp.Topology,
+                corner_group: gp.CornerGroup | int) -> list[int]:
+    """Corner indices in the given corner group.
+
+    Args:
+        topology (gp.Topology): topology object
+        corner_group (gp.CornerGroup | int): corner group or corner group ID
+    """
+
+    if not isinstance(corner_group, gp.CornerGroup):
+        corner_group = topology.corner_group(corner_group)
+    return [ci.get_id() for ci in corner_group.get_all()]
+
+
 def get_surfaces(topology: gp.Topology) -> dict[int]:
-    """Return surface indices.
+    """Surface indices in the topology.
 
     Args:
         topology (gp.Topology): topology object
