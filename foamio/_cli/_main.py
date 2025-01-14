@@ -3,7 +3,7 @@ import logging
 from sys import version_info
 
 from foamio.__about__ import __version__
-from foamio._cli import _clean, _convert, _describe, _generate, _plot, _tabulate
+from foamio._cli import _clean, _describe, _plot, _tabulate
 from foamio._common import LOGGING_FORMAT
 
 

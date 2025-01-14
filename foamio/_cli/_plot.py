@@ -6,6 +6,7 @@ from pathlib import Path
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+
 from foamio.dat import read
 
 
@@ -80,7 +81,7 @@ def __get_titles(loc: Path) -> tuple[str, str]:
     file is located in postProcessing/ folder.
 
     Args:
-        loc (Path): _description_
+        loc (Path): .dat-file path
 
     Returns:
         tuple[str, str]: title, subtitle
