@@ -5,9 +5,9 @@ except ImportError:
     try:
         import importlib_metadata as metadata
     except ImportError:
-        __version__ = 'unknown'
+        __version__ = "unknown"
 
 try:
-    __version__ = metadata.version('foamio')
+    __version__ = metadata.version("foamio")
 except Exception:
-    __version__ = 'unknown'
+    __version__ = "unknown"

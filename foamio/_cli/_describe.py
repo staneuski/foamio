@@ -10,24 +10,24 @@ from foamio.dat import read
 
 def add_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        'loc',
+        "loc",
         type=Path,
-        help='.dat-file path or directory with .dat-files',
+        help=".dat-file path or directory with .dat-files",
     )
 
     parser.add_argument(
-        '--usecols',
-        '-uc',
+        "--usecols",
+        "-uc",
         type=int,
-        nargs='+',
-        help='column indices to plot (index starting from 1)',
+        nargs="+",
+        help="column indices to plot (index starting from 1)",
     )
     parser.add_argument(
-        '--usenth',
-        '-un',
+        "--usenth",
+        "-un",
         type=int,
         default=None,
-        help='read every n-th row in .dat-file',
+        help="read every n-th row in .dat-file",
     )
 
 

@@ -53,5 +53,5 @@ foamio = "foamio._cli:main"
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
-# [tool.isort]
-# profile = "black"
+[tool.isort]
+profile = "black"

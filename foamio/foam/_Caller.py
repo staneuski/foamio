@@ -12,14 +12,13 @@ class Caller:
     - `Caller().Run(solver='incompressibleFluid')` will call
     `$ foamExec foamRun -solver incompressibleFluid`
     - `Caller().blockMesh()` will call `$ foamExec blockMesh`
-    - `Caller().Dictionary('system/controlDict', expand=True)` will call 
+    - `Caller().Dictionary('system/controlDict', expand=True)` will call
     `$ foamExec foamDictionary -expand system/controlDict`
     """
 
-    def __init__(self,
-                 wm_project_dir: str | Path = None,
-                 invert_args: bool = True,
-                 **kwargs) -> None:
+    def __init__(
+        self, wm_project_dir: str | Path = None, invert_args: bool = True, **kwargs
+    ) -> None:
         """
         Forwards each keyword argument to `subprocess.run` besides specified
         below
@@ -37,8 +36,7 @@ class Caller:
         """
 
         self.project_dir = (
-            self.__find_project_dir() if wm_project_dir is None else
-            wm_project_dir
+            self.__find_project_dir() if wm_project_dir is None else wm_project_dir
         )
         self.invert_args = invert_args
         self.__kwargs = kwargs
@@ -49,7 +47,7 @@ class Caller:
             # Calls are prepended with 'foam' since OpenFOAM uses lower-camel
             # capitalised case
             return self._call(
-                f'foam{cmd}' if cmd.istitle() else cmd,
+                f"foam{cmd}" if cmd.istitle() else cmd,
                 *args,
                 **kwargs,
             )
@@ -69,12 +67,10 @@ class Caller:
             bool: `WM_PROJECT_DIR`
         """
 
-        if not Path(os.environ['WM_PROJECT_DIR']).is_dir():
-            raise FileNotFoundError(
-                f'{os.environ["WM_PROJECT_DIR"]=} is not found'
-            )
+        if not Path(os.environ["WM_PROJECT_DIR"]).is_dir():
+            raise FileNotFoundError(f'{os.environ["WM_PROJECT_DIR"]=} is not found')
 
-        return Path(os.environ['WM_PROJECT_DIR'])
+        return Path(os.environ["WM_PROJECT_DIR"])
 
     @staticmethod
     def __convert_kwargs(**kwargs) -> list[str]:
@@ -83,22 +79,20 @@ class Caller:
             if (isinstance(value, bool) and value is False) or value is None:
                 continue
             elif isinstance(value, bool) and value is True:
-                args.append(f'-{key}')
+                args.append(f"-{key}")
                 continue
-            args.append(f'-{key}')
+            args.append(f"-{key}")
             args.append(str(value))
 
         return args
 
     def _call(self, cmd: str, *args, **kwargs) -> subprocess.CompletedProcess[int]:
-        str_args = [f'{self.project_dir}/bin/./foamExec', cmd]
+        str_args = [f"{self.project_dir}/bin/./foamExec", cmd]
         if not self.invert_args:
-            str_args += ([str(arg)
-                          for arg in args] + self.__convert_kwargs(**kwargs))
+            str_args += [str(arg) for arg in args] + self.__convert_kwargs(**kwargs)
         else:
-            str_args += (self.__convert_kwargs(**kwargs) +
-                         [str(arg) for arg in args])
+            str_args += self.__convert_kwargs(**kwargs) + [str(arg) for arg in args]
 
         # print(*str_args, sep=' ')
-        logging.debug(f'calling `subprocess.run({str_args})`')
+        logging.debug(f"calling `subprocess.run({str_args})`")
         return subprocess.run(str_args, **self.__kwargs)

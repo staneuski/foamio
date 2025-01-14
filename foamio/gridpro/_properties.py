@@ -6,10 +6,9 @@ from pathlib import Path
 from foamio.gridpro._helpers import _execute as execute
 
 
-def create_zones(infile: Path | str,
-                 labels: str,
-                 outfile: Path | str = None,
-                 init_index: int = 3) -> dict[str]:
+def create_zones(
+    infile: Path | str, labels: str, outfile: Path | str = None, init_index: int = 3
+) -> dict[str]:
     """Create cell zones from block labels
 
     Args:
@@ -36,13 +35,13 @@ def create_zones(infile: Path | str,
     for i, label in enumerate(labels):
         ind = init_index + i
         if ind == 1:
-            label_to_zone[label] = f'ws.Fluid'
+            label_to_zone[label] = f"ws.Fluid"
         elif ind == 2:
-            label_to_zone[label] = f'ws.Solid'
+            label_to_zone[label] = f"ws.Solid"
         else:
-            label_to_zone[label] = f'ws.User{ind}'
-        sargs += ['-ln', label, '-p', str(ind)]
-    sargs += ['-outfn', str(outfile)]
+            label_to_zone[label] = f"ws.User{ind}"
+        sargs += ["-ln", label, "-p", str(ind)]
+    sargs += ["-outfn", str(outfile)]
     execute(infile, sargs)
 
     return label_to_zone

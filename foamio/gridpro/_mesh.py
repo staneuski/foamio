@@ -9,10 +9,9 @@ import gp_utilities as gp
 from foamio.gridpro._helpers import _execute as execute
 
 
-def _schedule(fra_file: Path,
-              grd_file: Path = None,
-              n_steps: int = 10,
-              n_sweeps: int = 1_000) -> Path:
+def _schedule(
+    fra_file: Path, grd_file: Path = None, n_steps: int = 10, n_sweeps: int = 1_000
+) -> Path:
     """Generate schedule file.
 
     Args:
@@ -28,16 +27,16 @@ def _schedule(fra_file: Path,
     """
 
     fra_file = Path(fra_file).resolve()
-    grd_file = fra_file.with_suffix('.grd') if grd_file is None else grd_file
+    grd_file = fra_file.with_suffix(".grd") if grd_file is None else grd_file
     grd_file.parent.mkdir(parents=True, exist_ok=True)
 
-    sch_file = grd_file.with_suffix('.sch')
+    sch_file = grd_file.with_suffix(".sch")
     gp.Topology().write_schedule_file(
         str(sch_file),
         n_steps,
         n_sweeps,
         str(grd_file.relative_to(fra_file.parent)),
-        str(grd_file.with_suffix('.dump.tmp').relative_to(fra_file.parent)),
+        str(grd_file.with_suffix(".dump.tmp").relative_to(fra_file.parent)),
     )
 
     return grd_file
@@ -50,13 +49,15 @@ def _mesh(fra_file: Path) -> subprocess.CompletedProcess[int]:
         fra_file (Path): path to the .fra-topology file
     """
 
-    return execute(fra_file, ['Ggrid', fra_file.name])
+    return execute(fra_file, ["Ggrid", fra_file.name])
 
 
-def mesh(fra_file: Path | str,
-         region: Path | str = None,
-         n_steps: int = 10,
-         n_sweeps: int = 1_000) -> Path:
+def mesh(
+    fra_file: Path | str,
+    region: Path | str = None,
+    n_steps: int = 10,
+    n_sweeps: int = 1_000,
+) -> Path:
     """Generate a mesh using the given topology.
 
     Args:
@@ -78,20 +79,22 @@ def mesh(fra_file: Path | str,
     if not region is None:
         region = Path(region).resolve()
         region.mkdir(parents=True, exist_ok=True)
-        grd_file = region / fra_file.with_suffix('.grd').name
+        grd_file = region / fra_file.with_suffix(".grd").name
 
     grd_file = _schedule(fra_file, grd_file, n_steps, n_sweeps)
     _mesh(fra_file)
     return grd_file
 
 
-def extrude(infile: Path | str,
-            surface: int,
-            spacing: float,
-            aspect: float = 1.,
-            distance: float = None,
-            cell_count: int = None,
-            outfile: Path | str = None) -> None:
+def extrude(
+    infile: Path | str,
+    surface: int,
+    spacing: float,
+    aspect: float = 1.0,
+    distance: float = None,
+    cell_count: int = None,
+    outfile: Path | str = None,
+) -> None:
     """Extrude surfaces by the given IDs to the given distance.
 
     Args:
@@ -118,17 +121,18 @@ def extrude(infile: Path | str,
              '-gr', str(aspect)]
     # yapf: enable
     if distance is None and not cell_count is None:
-        sargs += ['-n', str(cell_count)]
+        sargs += ["-n", str(cell_count)]
     elif not distance is None and cell_count is None:
-        sargs += ['-l', str(distance)]
+        sargs += ["-l", str(distance)]
     else:
-        raise ValueError('either `distance` or `cell_count` must be provided')
+        raise ValueError("either `distance` or `cell_count` must be provided")
 
-    execute(infile, sargs + ['-outfn', str(outfile)])
+    execute(infile, sargs + ["-outfn", str(outfile)])
 
 
-def set_cell_size(grd_file: Path | str, surfaces: Iterable[int],
-                  cell_size: float) -> None:
+def set_cell_size(
+    grd_file: Path | str, surfaces: Iterable[int], cell_size: float
+) -> None:
     """Set first cell size at the given surfaces.
 
     Args:
@@ -171,11 +175,13 @@ def scale(infile: Path | str, factor: int, outfile: Path | str = None) -> None:
     execute(infile, sargs)
 
 
-def convert(infile: Path | str,
-            outdir: Path | str = None,
-            *,
-            keep: bool = False,
-            drop_zones: bool = False) -> None:
+def convert(
+    infile: Path | str,
+    outdir: Path | str = None,
+    *,
+    keep: bool = False,
+    drop_zones: bool = False,
+) -> None:
     """Convert GridPro grid to OpenFOAM polyMesh
 
     Args:
@@ -201,14 +207,14 @@ def convert(infile: Path | str,
              '-dn', str(outdir)]
     # yapf: enable
     execute(infile, sargs)
-    if not (outdir / 'boundary').exists() or not (outdir / 'points').exists():
-        raise RuntimeError(f'failed to convert {infile.name} to {outdir.name}')
+    if not (outdir / "boundary").exists() or not (outdir / "points").exists():
+        raise RuntimeError(f"failed to convert {infile.name} to {outdir.name}")
 
     if drop_zones:
-        (outdir / 'cellzones').unlink()
+        (outdir / "cellzones").unlink()
     else:
-        (outdir / 'cellzones').rename(outdir / 'cellZones')
+        (outdir / "cellzones").rename(outdir / "cellZones")
 
-    if (outdir / 'points').exists() and not keep:
+    if (outdir / "points").exists() and not keep:
         infile.unlink()
-        logging.debug(f'{infile} is removed')
+        logging.debug(f"{infile} is removed")

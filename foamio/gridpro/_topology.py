@@ -7,9 +7,7 @@ import gp_utilities as gp
 from foamio.gridpro._helpers import _execute as execute
 
 
-def _execute(topology: gp.Topology,
-             sargs: list[str],
-             cwd: Path = None) -> None:
+def _execute(topology: gp.Topology, sargs: list[str], cwd: Path = None) -> None:
     """Execute topology command.
 
     Args:
@@ -18,11 +16,10 @@ def _execute(topology: gp.Topology,
         cwd (Path, optional): current working directory. Defaults to None.
     """
 
-    topology.execute(' '.join(map(str, sargs)))
+    topology.execute(" ".join(map(str, sargs)))
 
 
-def get_corners(topology: gp.Topology,
-                corner_group: gp.CornerGroup | int) -> list[int]:
+def get_corners(topology: gp.Topology, corner_group: gp.CornerGroup | int) -> list[int]:
     """Corner indices in the given corner group.
 
     Args:
@@ -51,11 +48,13 @@ def get_surfaces(topology: gp.Topology) -> dict[int]:
     }
 
 
-def _translate(topology: gp.Topology,
-               translation: Iterable[float, 3],
-               corner_group: int = None,
-               surface_group: int = None,
-               surfaces: Iterable[int] = None) -> gp.Topology:
+def _translate(
+    topology: gp.Topology,
+    translation: Iterable[float, 3],
+    corner_group: int = None,
+    surface_group: int = None,
+    surfaces: Iterable[int] = None,
+) -> gp.Topology:
     """Translate the topology by the given displacement vector.
 
     Args:
@@ -67,23 +66,24 @@ def _translate(topology: gp.Topology,
         corner_group (int, optional): corner group index. Defaults to None.
     """
 
-    sargs = ['transform_topo']
-    sargs += ['-g', corner_group] if corner_group is not None else []
-    sargs += ['-sg', surface_group] if surface_group is not None else []
-    sargs += ['-s', ', '.join(map(str, surfaces))
-              ] if surfaces is not None else []
-    sargs += ['-t1'] + [str(coord) for coord in translation[:3]]
+    sargs = ["transform_topo"]
+    sargs += ["-g", corner_group] if corner_group is not None else []
+    sargs += ["-sg", surface_group] if surface_group is not None else []
+    sargs += ["-s", ", ".join(map(str, surfaces))] if surfaces is not None else []
+    sargs += ["-t1"] + [str(coord) for coord in translation[:3]]
 
     _execute(topology, sargs)
 
 
-def align(topology: gp.Topology | Path | str,
-          grd_file: Path | str,
-          corner_grp: gp.CornerGroup = None) -> None:
+def align(
+    topology: gp.Topology | Path | str,
+    grd_file: Path | str,
+    corner_grp: gp.CornerGroup = None,
+) -> None:
     """Align the topology with the given grid.
 
     Args:
-        topology (gp.Topology | Path | str): topology object or path to the 
+        topology (gp.Topology | Path | str): topology object or path to the
         .fra-topology file
         grd_file (Path | str): path to the input grid file
         topology (gp.Topology): topology object
@@ -105,8 +105,7 @@ def align(topology: gp.Topology | Path | str,
         execute(fra_file, sargs)
         return
 
-    corner_grp = topology.new_corner_grp(
-    ) if corner_grp is None else corner_grp
+    corner_grp = topology.new_corner_grp() if corner_grp is None else corner_grp
     corner_grp.add_all()
     # yapf: disable
     sargs = ['grid_to_til',
@@ -116,8 +115,9 @@ def align(topology: gp.Topology | Path | str,
     _execute(topology, sargs)
 
 
-def split(topology: gp.Topology, surface_group: gp.SurfaceGroup | int,
-          outfile: Path | str) -> None:
+def split(
+    topology: gp.Topology, surface_group: gp.SurfaceGroup | int, outfile: Path | str
+) -> None:
     """Split the topology by the given surface group.
 
     Args:
@@ -127,9 +127,12 @@ def split(topology: gp.Topology, surface_group: gp.SurfaceGroup | int,
         `dir/split.0.fra`, `dir/split.1.fra`, etc.
     """
 
-    index = (surface_group.get_id()
-             if isinstance(surface_group, gp.SurfaceGroup) else surface_group)
+    index = (
+        surface_group.get_id()
+        if isinstance(surface_group, gp.SurfaceGroup)
+        else surface_group
+    )
     outfile = Path(outfile).resolve()
 
-    sargs = ['split_topology', '-sg', index, '-p', outfile.name]
+    sargs = ["split_topology", "-sg", index, "-p", outfile.name]
     _execute(topology, sargs)

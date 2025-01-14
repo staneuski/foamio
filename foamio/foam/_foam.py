@@ -17,7 +17,7 @@ def _convert(value: str) -> str | list:
         str | list: converted value
     """
 
-    value = value.rstrip() # drop end line charecters
+    value = value.rstrip()  # drop end line charecters
     if value.isdigit():
         return int(value)
     try:
@@ -26,10 +26,7 @@ def _convert(value: str) -> str | list:
         return value
 
 
-def read(root: Path | str,
-         fname: Path | str,
-         *,
-         encoding: str = 'utf-8') -> dict:
+def read(root: Path | str, fname: Path | str, *, encoding: str = "utf-8") -> dict:
     """Read OpenFOAM dictionary file as Python dictionary using
     `foamDictionary`.
 
@@ -55,27 +52,27 @@ def read(root: Path | str,
             str | dict: entry value.
         """
 
-        foam_dict = Caller(encoding=encoding,
-                           check=True,
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.DEVNULL).Dictionary
+        foam_dict = Caller(
+            encoding=encoding,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        ).Dictionary
         kwargs = dict(case=root, entry=entry)
         try:
             return {
-                key: _read(f'{entry}/{key}')
-                for key in foam_dict(fname,
-                                     keywords=True,
-                                     **kwargs).stdout.splitlines()
+                key: _read(f"{entry}/{key}")
+                for key in foam_dict(fname, keywords=True, **kwargs).stdout.splitlines()
             }
         except subprocess.CalledProcessError:
-            return _convert(foam_dict(fname,
-                                      value=True,
-                                      **kwargs).stdout)
+            return _convert(foam_dict(fname, value=True, **kwargs).stdout)
 
     return {
         entry: _read(entry)
         for entry in Caller(
             encoding=encoding,
             stdout=subprocess.PIPE,
-        ).Dictionary(fname, case=root, keywords=True).stdout.splitlines()
+        )
+        .Dictionary(fname, case=root, keywords=True)
+        .stdout.splitlines()
     }
