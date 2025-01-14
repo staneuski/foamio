@@ -3,7 +3,7 @@ import logging
 from sys import version_info
 
 from foamio.__about__ import __version__
-from foamio._cli import _clean, _describe, _plot, _tabulate
+from foamio._cli import _clean, _describe, _plot, _serialise, _tabulate
 from foamio._common import LOGGING_FORMAT
 
 
@@ -55,6 +55,14 @@ def main(argv=None) -> argparse.Namespace:
     parser = subparsers.add_parser("plot", **plot)
     _plot.add_args(parser)
     parser.set_defaults(func=_plot.plot)
+
+    serialise = dict(
+        aliases=["s", "series"],
+        help=f"Generate ParaView series file (.vtk.series or .pvd)",
+    )
+    parser = subparsers.add_parser("serialise", **serialise)
+    _serialise.add_args(parser)
+    parser.set_defaults(func=_serialise.serialise)
 
     tabulate = dict(aliases=["t"], help=f"Create tabulated entry with CoolProp")
     parser = subparsers.add_parser("tabulate", **tabulate)
