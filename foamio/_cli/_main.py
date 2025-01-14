@@ -13,7 +13,7 @@ def main(argv=None) -> argparse.Namespace:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog=f'foamio v{__version__}'
         f' [Python {version_info.major}.{version_info.minor}.{version_info.micro}]'
-        '\nCopyright (c) 2021-2024 Stanislau Stasheuski',
+        '\nCopyright (c) 2021-2025 Stanislau Stasheuski',
     )
 
     parent_parser.add_argument(
@@ -45,16 +45,6 @@ def main(argv=None) -> argparse.Namespace:
     parser = subparsers.add_parser('clean', **clean)
     _clean.add_args(parser)
     parser.set_defaults(func=_clean.clean)
-
-    convert = dict(aliases=['c'], help=f'Convert OpenFOAM files')
-    parser = subparsers.add_parser('convert', **convert)
-    _convert.add_args(parser)
-    parser.set_defaults(func=_convert.convert)
-
-    generate = dict(aliases=['g'], help=f'Generate ParaView files (.pvd-file)')
-    parser = subparsers.add_parser('generate', **generate)
-    _generate.add_args(parser)
-    parser.set_defaults(func=_generate.generate)
 
     describe = dict(aliases=['d'], help=f'Describe {help_dat}')
     parser = subparsers.add_parser('describe', **describe)

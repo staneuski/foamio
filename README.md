@@ -2,13 +2,6 @@
 OpenFOAM addons, Python routines and helpers.
 
 ## CLI
-- Convert all Z-cutPlanes from .vtk to .vtp and generate a .pvd-file matching the 
-case name
-    ```sh
-    foam_case=<path>
-    foamio convert $foam_case/postProcessing/cutPlanes && \
-    foamio -v generate $foam_case/postProcessing/cutPlanes --pattern='*(z).vtp' --outfile=$foam_case/postProcessing/$(basename $foam_case).pvd
-    ```
 - Clean up a case (including _postProcessing/_) from a particular time-step
     ```sh
     foam_case=<path>

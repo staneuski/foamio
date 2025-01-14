@@ -35,10 +35,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-all = [
+cli = [
   "CoolProp",
   "matplotlib",
-  "vtk"
 ]
 
 [project.urls]
