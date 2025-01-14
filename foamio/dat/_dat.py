@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
 from foamio._common import REGEX_DIGIT
 
 
@@ -28,7 +29,6 @@ def __unnest_columns(dat: pd.DataFrame) -> pd.DataFrame:
         if column_dtype == np.dtype("object") and re.match(
             rf".*?{REGEX_DIGIT}", dat[key].iloc[-1]
         ):
-
             dat[key] = dat[key].apply(
                 lambda cell: np.array(
                     cell.replace("(", "").replace(")", "").split(),
@@ -91,7 +91,11 @@ def read(
         dat.index.name = dat.index.name.replace("#", "").strip()
         dat.columns = dat.columns.str.strip()
 
-        return __unnest_columns(dat)
+        return __unnest_columns(
+            dat.replace("N/A", pd.NA).apply(
+                func=lambda col: pd.to_numeric(col, errors="coerce")
+            )
+        )
 
     filepath = Path(filepath)
 
