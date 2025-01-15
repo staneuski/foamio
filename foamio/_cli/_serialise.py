@@ -112,13 +112,13 @@ def __series(indir: Path, outfile: Path, pattern: str = "*.vtk") -> None:
 
     root = {
         "files": [
-            {"file": str(f.relative_to(outfile.parent)), "time": f.parent.name}
+            {"name": str(f.relative_to(outfile.parent)), "time": float(f.parent.name)}
             for f in found_files
         ],
         "file-series-version": "1.0",
     }
     with open(outfile, "w") as f:
-        json.dump(root, f)
+        json.dump(root, f, separators=(",", ":"))
 
 
 def serialise(args: argparse.Namespace) -> None:
