@@ -1,7 +1,7 @@
 [project]
 name = "foamio"
 version = "0.7.1"
-description = "OpenFOAM, GridPro i/o and Python CLI"
+description = "OpenFOAM Python CLI"
 readme = "README.md"
 requires-python = ">=3.6"
 license = {file = "LICENSE"}
@@ -31,13 +31,13 @@ classifiers = [
 dependencies = [
   "importlib_metadata; python_version<'3.8'",
   "numpy",
-  "pandas"
+  "pandas",
+  "matplotlib",
 ]
 
 [project.optional-dependencies]
 cli = [
   "CoolProp",
-  "matplotlib",
 ]
 
 [project.urls]

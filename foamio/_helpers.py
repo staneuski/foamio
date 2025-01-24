@@ -21,13 +21,13 @@ def remove(tree: Path) -> None:
     shutil.rmtree(tree)
 
 
-def require_range(nmin, nmax):
+def require_range(n_min, n_max):
     class RequiredLength(argparse.Action):
         def __call__(self, parser, args, values, option_string=None):
-            if not nmin <= len(values) <= nmax:
+            if not n_min <= len(values) <= n_max:
                 raise argparse.ArgumentTypeError(
-                    f'argument "{self.dest}" requires '
-                    f"between {nmin} and {nmax} arguments"
+                    f"argument '{self.dest}' requires "
+                    f"between {n_min} and {n_max} arguments"
                 )
             setattr(args, self.dest, values)
 
