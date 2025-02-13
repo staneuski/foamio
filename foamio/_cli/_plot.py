@@ -47,7 +47,7 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         "--background",
         "-b",
         action="store_true",
-        help="open in background mode - save .svg plot" " alongside",
+        help="open in background mode, i.e. save .svg-plot alongside",
     )
 
     parser.add_argument(
@@ -132,13 +132,15 @@ def plot(args: argparse.Namespace) -> None:
 
     # plt.tight_layout()
     if args.background:
-        # Save to path with .png suffix either for folder name (e.g. to
-        # functionObject folder name) or just replace .dat suffix with .png
-        plt.savefig(
+        # Save to path with .png suffix either for folder name
+        # (e.g. to functionObject folder name) or just replace .dat suffix with .png
+        fname = (
             args.loc.with_suffix(args.loc.suffix + ".png")
             if args.loc.is_dir()
             else args.loc.with_suffix(".png")
         )
+        plt.savefig(fname)
+        logging.info(f"saved plot to {fname}")
         return
 
     plt.show(block=True)
