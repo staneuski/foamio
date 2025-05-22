@@ -3,13 +3,11 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import re
 import xml.etree.cElementTree as et
 from pathlib import Path
 
-SUPPORTED_SUFFIXES = dict(
-    reader={".vtk", ".vtp", ".vtu"},
-    writer={".pvd", ".series"},
-)
+SUPPORTED_SUFFIXES = dict(writer={".pvd", ".series"})
 
 
 def add_args(parser: argparse.ArgumentParser) -> None:
@@ -30,8 +28,9 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         "--pattern",
         "-p",
         type=str,
-        default="*.vtk",
-        help="glob pattern to match VTK-files (e.g.: '*_cutPlane.vtk')",
+        default=r".*/(?P<time>.*)/(?P<file>.*.vtk)",
+        help="regex pattern to match VTK-files. Must include 'time' and 'file' groups, e.g. "
+        "'.*/(?P<time>.*)/(?P<file>.*.vtk)' or '.*/(?P<file>f0_(?P<time>.*).vtk)'",
     )
 
 
@@ -49,25 +48,16 @@ def __validate(args: argparse.Namespace) -> None:
         else args.outfile.resolve()
     )
 
-    validate("reader", args.pattern)
     validate("writer", args.outfile.suffix)
 
 
-def __pvd(indir: Path, outfile: Path, pattern: str = "*.vtp") -> None:
-    """Create ParaView .pvd-file from directory with time-step folders.
+def __pvd(time_to_file: Path, outfile: Path) -> None:
+    """Write .pvd-file from time-to-file mapping.
 
     Args:
-        indir (Path): Directory storing time-step folders with .vtu-files.
-        outfile (Path): .pvd-file to generate.
-        pattern (str, optional): Glob pattern to match VTK-files. Defaults to '*.vtp'.
+        time_to_file (dict[float, str]): Mapping of time to file paths.
+        outfile (Path): Output .series-file path.
     """
-
-    found_files = sorted(indir.rglob(pattern))
-    if not found_files:
-        logging.fatal(f"no files matched the {pattern=} in {indir} - skipping…")
-        return
-
-    logging.info(f"{len(found_files)} files matched the {pattern=} in {indir}")
 
     root = et.Element(
         "VTKFile",
@@ -75,61 +65,58 @@ def __pvd(indir: Path, outfile: Path, pattern: str = "*.vtp") -> None:
         byte_order="LittleEndian",
         compressor="vtkZLibDataCompressor",
     )
-
-    # Iterate over found files
-    cellection = et.SubElement(root, "Collection")
-    for f in found_files:
-        logging.debug(f"{f} found")
+    collection = et.SubElement(root, "Collection")
+    for time, f in time_to_file.items():
         et.SubElement(
-            cellection,
-            "DataSet",
-            timestep=f.parent.name,
-            group="",
-            part="0",
-            file=str(f.relative_to(outfile.parent)),
+            collection, "DataSet", timestep=str(time), file=f, group="", part="0"
         )
-
     tree = et.ElementTree(root)
     tree.write(outfile)
     logging.info(f"{outfile} generated")
 
 
-def __series(indir: Path, outfile: Path, pattern: str = "*.vtk") -> None:
-    """Create ParaView .vtk.series-file from directory with time-step folders.
+def __series(time_to_file: dict[float, str], outfile: Path) -> None:
+    """Write .series-file from time-to-file mapping.
 
     Args:
-        indir (Path): Directory storing time-step folders with .vtu-files.
-        outfile (Path): .vtk.series-file to generate.
-        pattern (str, optional): Glob pattern to match VTK-files. Defaults to '*.vtk'.
+        time_to_file (dict[float, str]): Mapping of time to file paths.
+        outfile (Path): Output .series-file path.
     """
 
-    found_files = sorted(indir.rglob(pattern))
-    if not found_files:
-        logging.fatal(f"no files matched the {pattern=} in {indir} - skipping…")
-        return
-
-    logging.info(f"{len(found_files)} files matched the {pattern=} in {indir}")
-
     root = {
-        "files": [
-            {"name": str(f.relative_to(outfile.parent)), "time": float(f.parent.name)}
-            for f in found_files
-        ],
+        "files": [{"name": f, "time": time} for time, f in time_to_file.items()],
         "file-series-version": "1.0",
     }
     with open(outfile, "w") as f:
         json.dump(root, f, separators=(",", ":"))
+        logging.info(f"{outfile} generated")
 
 
 def serialise(args: argparse.Namespace) -> None:
     __validate(args)
 
+    pattern = re.compile(args.pattern)
+    time_to_file = {
+        float(match.group("time")): str(f.relative_to(args.outfile.parent))
+        for f in args.indir.rglob("*")
+        if (match := pattern.fullmatch(str(f)))
+    }
+    if not time_to_file:
+        logging.fatal(
+            f"no files matched the {args.pattern=} in {args.indir} - skipping…"
+        )
+        raise SystemExit(1)
+
+    logging.info(
+        f"{len(time_to_file)} files matched the {args.pattern=} in {args.indir}"
+    )
+
     outsuffix = args.outfile.suffix
     if outsuffix.endswith(".pvd"):
-        __pvd(args.indir, args.outfile, pattern=args.pattern)
+        __pvd(time_to_file, args.outfile)
         return
     elif outsuffix.endswith(".series"):
-        __series(args.indir, args.outfile, pattern=args.pattern)
+        __series(time_to_file, args.outfile)
         return
 
     logging.fatal(f"unsupported pattern {outsuffix=} - exiting…")
