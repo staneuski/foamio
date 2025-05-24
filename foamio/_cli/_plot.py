@@ -6,6 +6,7 @@ from pathlib import Path
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from foamio.dat import read
 
@@ -73,8 +74,6 @@ def __validate(args: argparse.Namespace) -> None:
     args.title = titles[0] if args.title is None else args.title
     args.subtitle = titles[1] if args.subtitle is None else args.subtitle
 
-    args.logscale = args.logscale or "residuals" in str(args.loc)
-
 
 def __get_titles(loc: Path) -> tuple[str, str]:
     """Get OpenFOAM-case name and post-processing function name if the .dat
@@ -98,13 +97,15 @@ def __get_titles(loc: Path) -> tuple[str, str]:
 def plot(args: argparse.Namespace) -> None:
     __validate(args)
 
-    def __plot(ax, args) -> None:
-        read(args.loc, usecols=args.usecols, use_nth=args.usenth).plot(
+    def __plot(ax, args) -> pd.DataFrame:
+        df = read(args.loc, usecols=args.usecols, use_nth=args.usenth)
+        df.plot(
             ax=ax,
             title=args.subtitle,
             logy=args.logscale,
             grid=True,
         )
+        return df
 
     def animate(frame: int = 0) -> None:
         ax.clear()
@@ -119,7 +120,7 @@ def plot(args: argparse.Namespace) -> None:
         f" from {args.loc} every {args.refresh}s"
     )
     ax = fig.add_subplot()
-    __plot(ax, args)
+    df = __plot(ax, args)
 
     if args.refresh and not args.background:
         ani = animation.FuncAnimation(
@@ -132,14 +133,18 @@ def plot(args: argparse.Namespace) -> None:
 
     # plt.tight_layout()
     if args.background:
-        # Save to path with .png suffix either for folder name
-        # (e.g. to functionObject folder name) or just replace .dat suffix with .png
-        fname = (
-            args.loc.with_suffix(args.loc.suffix + ".png")
-            if args.loc.is_dir()
-            else args.loc.with_suffix(".png")
+        # Append the column names to the file name, if --usecols is set
+        tail = "." + "-".join(c for c in df.columns) if args.usecols else ""
+
+        # Use the directory name with a .png-suffix, if the input is a directory.
+        # Otherwise, replace the .dat-suffix with .png
+        plt.savefig(
+            fname := (
+                args.loc.with_suffix(f"{args.loc.suffix}{tail}.png")
+                if args.loc.is_dir()
+                else args.loc.with_suffix(f"{tail}.png")
+            )
         )
-        plt.savefig(fname)
         logging.info(f"saved plot to {fname}")
         return
 
