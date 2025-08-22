@@ -44,7 +44,7 @@ def describe(args: argparse.Namespace) -> None:
     __validate(args)
 
     logging.info(f"reading {args.loc}")
-    stat = read(args.loc, usecols=args.usecols, use_nth=args.usenth).describe()
+    stat = read(args.loc, usecols=args.usecols, usenth=args.usenth).describe()
 
     if not args.background:
         print(stat)

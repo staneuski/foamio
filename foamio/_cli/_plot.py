@@ -98,7 +98,7 @@ def plot(args: argparse.Namespace) -> None:
     __validate(args)
 
     def __plot(ax, args) -> pd.DataFrame:
-        df = read(args.loc, usecols=args.usecols, use_nth=args.usenth)
+        df = read(args.loc, usecols=args.usecols, usenth=args.usenth)
         df.plot(
             ax=ax,
             title=args.subtitle,

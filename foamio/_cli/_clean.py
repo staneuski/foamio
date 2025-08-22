@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
-from foamio._common import REGEX_DIGIT
+from foamio._common import NUMBER_PATTERN
 from foamio._helpers import remove, require_range
 
 
@@ -97,7 +97,7 @@ def clean(args: argparse.Namespace) -> None:
         d
         for d in args.indir.rglob("*")
         if d.is_dir()
-        and re.match(REGEX_DIGIT, d.name)
+        and re.match(NUMBER_PATTERN, d.name)
         and args.interval.is_in(time := float(d.name))
         and not np.any(np.isclose(time, args.keep))
     ]
