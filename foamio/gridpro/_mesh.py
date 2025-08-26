@@ -1,11 +1,10 @@
-from __future__ import annotations
-
 import logging
 import subprocess
 from pathlib import Path
 from typing import Iterable
 
 import gp_utilities as gp
+
 from foamio.gridpro._helpers import _execute as execute
 
 

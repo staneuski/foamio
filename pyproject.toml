@@ -1,9 +1,9 @@
 [project]
 name = "foamio"
-version = "0.7.2"
+version = "0.7.3"
 description = "OpenFOAM Python CLI"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {file = "LICENSE"}
 keywords = [
   "mesh", "file formats", "scientific", "engineering", "finite volume method", "OpenFOAM"]
@@ -19,7 +19,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
