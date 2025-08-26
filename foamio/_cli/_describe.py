@@ -23,7 +23,7 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         "-uc",
         type=int,
         nargs="+",
-        help="column indices to plot (index starting from 1)",
+        help="column indices to describe",
     )
     parser.add_argument(
         "--usenth",
@@ -33,16 +33,34 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         help="read every n-th row in .dat-file",
     )
 
+    parser.add_argument(
+        "--filter",
+        "-f",
+        type=str,
+        default=None,
+        help="filter columns by regex pattern after reading",
+    )
+
 
 def __validate(args: argparse.Namespace) -> None:
     args.loc = args.loc.resolve()
+
+    if args.usecols is not None:
+        args.usecols = [int(c) + 1 for c in args.usecols]
 
 
 def describe(args: argparse.Namespace) -> None:
     __validate(args)
 
     logging.info("reading %s", args.loc)
-    stat = read(args.loc, usecols=args.usecols, usenth=args.usenth).describe()
+    df = read(args.loc, usecols=args.usecols, usenth=args.usenth)
+    if args.filter is not None:
+        df = df.filter(
+            regex=args.filter,
+            axis="columns",
+        )
+    stat = df.describe()
+    stat.loc["last"] = df.iloc[-1]
 
     if not args.background:
         print(stat)

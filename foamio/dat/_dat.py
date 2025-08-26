@@ -87,6 +87,7 @@ def read(
             __unnest_columns(dat)
             .replace("N/A", pd.NA)
             .apply(func=lambda col: pd.to_numeric(col, errors="coerce"))
+            .sort_index()
         )
 
     filepath = Path(filepath)

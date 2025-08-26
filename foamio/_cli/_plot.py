@@ -32,8 +32,7 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         "--logscale",
         "-l",
         action="store_true",
-        help="plots data (y-axis) on log scale - for"
-        ' "residuals.dat" sets automatically',
+        help="plots data (y-axis) on log scale",
     )
     parser.add_argument(
         "--refresh",
@@ -54,7 +53,7 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         "-uc",
         type=int,
         nargs="+",
-        help="column indices to plot (index starting from 1)",
+        help="column indices to plot",
     )
     parser.add_argument(
         "--usenth",
@@ -64,6 +63,14 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         help="read every n-th row in .dat-file",
     )
 
+    parser.add_argument(
+        "--filter",
+        "-f",
+        type=str,
+        default=None,
+        help="filter columns by regex pattern after reading",
+    )
+
 
 def __validate(args: argparse.Namespace) -> None:
     args.loc = args.loc.resolve()
@@ -71,6 +78,9 @@ def __validate(args: argparse.Namespace) -> None:
     titles = __get_titles(args.loc)
     args.title = titles[0] if args.title is None else args.title
     args.subtitle = titles[1] if args.subtitle is None else args.subtitle
+
+    if args.usecols is not None:
+        args.usecols = [int(c) + 1 for c in args.usecols]
 
 
 def __get_titles(loc: Path) -> tuple[str, str]:
@@ -84,7 +94,7 @@ def __get_titles(loc: Path) -> tuple[str, str]:
         tuple[str, str]: title, subtitle
     """
 
-    if not "postProcessing" in str(loc.parts):
+    if "postProcessing" not in str(loc.parts):
         return "", ""
 
     folders = list(loc.parts)
@@ -97,6 +107,11 @@ def plot(args: argparse.Namespace) -> None:
 
     def __plot(ax, args) -> pd.DataFrame:
         df = read(args.loc, usecols=args.usecols, usenth=args.usenth)
+        if args.filter is not None:
+            df = df.filter(
+                regex=args.filter,
+                axis="columns",
+            )
         df.plot(
             ax=ax,
             title=args.subtitle,
