@@ -43,7 +43,7 @@ def __validate(args: argparse.Namespace) -> None:
 def describe(args: argparse.Namespace) -> None:
     __validate(args)
 
-    logging.info(f"reading {args.loc}")
+    logging.info("reading %s", args.loc)
     stat = read(args.loc, usecols=args.usecols, usenth=args.usenth).describe()
 
     if not args.background:
@@ -58,4 +58,4 @@ def describe(args: argparse.Namespace) -> None:
         else args.loc.with_suffix(".csv")
     )
     stat.to_csv(fname)
-    logging.info(f"saved to {fname}")
+    logging.info("saved to %s", fname)

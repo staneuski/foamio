@@ -18,8 +18,8 @@ class Interval:
     lhs: float = 0
     rhs: float = np.inf
 
-    _lhs_less = np.less_equal
-    _rhs_less = np.less
+    lhs_less = np.less_equal
+    rhs_less = np.less
 
     def __post_init__(self):
         self.lhs = (
@@ -32,7 +32,7 @@ class Interval:
         )
 
     def is_in(self, value: float) -> bool:
-        return self._lhs_less(self.lhs, value) and self._rhs_less(value, self.rhs)
+        return self.lhs_less(self.lhs, value) and self.rhs_less(value, self.rhs)
 
 
 def add_args(parser: argparse.ArgumentParser) -> None:
@@ -82,17 +82,17 @@ def __validate(args: argparse.Namespace) -> None:
     )
 
     if args.exclude_first:
-        args.interval._lhs_less = np.less
+        args.interval.lhs_less = np.less  # [protected-access]
     if args.include_last:
-        args.interval._rhs_less = np.less_equal
+        args.interval.rhs_less = np.less_equal
     args.keep = np.arange(*args.keep) if not args.keep is None else np.array([])
-    # logging.debug(f"excluding list: {sorted(set(args.keep))}")
+    # logging.debug("excluding list: %s", sorted(set(args.keep)))
 
 
 def clean(args: argparse.Namespace) -> None:
     __validate(args)
 
-    logging.debug(f"searching time-steps in {args.indir}…")
+    logging.debug("searching time-steps in %s…", args.indir)
     timesteps: list[Path] = [
         d
         for d in args.indir.rglob("*")
@@ -110,21 +110,25 @@ def clean(args: argparse.Namespace) -> None:
             else ""
         )
         logging.info(
-            f"{len(timesteps)} time-steps are to deletion"
-            f"{unique_info}:\n{sorted(unique_times)}"
+            "%d time-steps are to deletion%s:\n%s",
+            len(timesteps),
+            unique_info,
+            sorted(unique_times),
         )
         return
 
     with concurrent.futures.ProcessPoolExecutor() as e:
-        logging.info(f"recursive deletion of {len(timesteps)} time-step directories…")
+        logging.info("recursive deletion of %d time-step directories…", len(timesteps))
 
         future_to_dir = {e.submit(remove, timestep): timestep for timestep in timesteps}
         for future in concurrent.futures.as_completed(future_to_dir):
             timestep = future_to_dir[future]
             try:
                 future.result()
-            except Exception as exception:
-                logging.warning(f"deletion of {timestep} raised an {exception=}")
-            logging.debug(f"{timestep} deleted")
+            except OSError as exception:
+                logging.warning(
+                    "deletion of %s raised an exception=%r", timestep, exception
+                )
+            logging.debug("%s deleted", timestep)
 
-        logging.info(f"found timesteps have been deleted in {args.indir}")
+        logging.info("found timesteps have been deleted in %s", args.indir)

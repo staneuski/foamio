@@ -64,10 +64,10 @@ def main(argv=None) -> argparse.Namespace:
     _serialise.add_args(parser)
     parser.set_defaults(func=_serialise.serialise)
 
-    tabulate = dict(aliases=["t"], help=f"Create tabulated entry with CoolProp")
-    parser = subparsers.add_parser("tabulate", **tabulate)
-    _tabulate.add_args(parser)
-    parser.set_defaults(func=_tabulate.tabulate)
+    # tabulate = dict(aliases=["t"], help=f"Create tabulated entry with CoolProp")
+    # parser = subparsers.add_parser("tabulate", **tabulate)
+    # _tabulate.add_args(parser)
+    # parser.set_defaults(func=_tabulate.tabulate)
 
     args = parent_parser.parse_args(argv)
     logging.basicConfig(level=args.loglevel, format=LOGGING_FORMAT)

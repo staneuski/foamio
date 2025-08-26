@@ -63,7 +63,6 @@ def read(
     """
 
     def _read(filepath: Path) -> pd.DataFrame:
-
         header_pos = __get_header_size(filepath)
 
         # Read .dat-file as pandas' DataFrame
@@ -76,7 +75,7 @@ def read(
             skiprows=(
                 lambda n: (
                     n > header_pos and n % usenth
-                    if not usenth is None and usenth >= 2
+                    if usenth is not None and usenth >= 2
                     else None
                 )
             ),  # type: ignore
@@ -108,9 +107,9 @@ def write(
     dat: np.ndarray,
     *,
     compression: bool = False,
-    header: str = None,
+    header: str | None = None,
     dims: bool = False,
-    footer: str = None,
+    footer: str | None = None,
 ) -> None:
     """Write n-dimensional array to .dat-file.
 
@@ -132,9 +131,9 @@ def write(
         .replace("]", ")")
     )
     sdat = (
-        (header if not header is None else "")
+        (header if header is not None else "")
         + re.sub(r"\s+", " ", sdat).strip()
-        + (footer if not footer is None else "")
+        + (footer if footer is not None else "")
     )
     if compression:
         with gzip.open(fname, "wt") as f:

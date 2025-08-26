@@ -109,10 +109,14 @@ def __fill(
             i = future_to_indrow[future]
             try:
                 values[i] = future.result()
-                logging.debug(f"{entry=} at {i=} ({qs.T[i]=}) filled")
-            except Exception as exception:
+                logging.debug("%r at %r (qs.T[%r]=%r) filled", entry, i, i, qs.T[i])
+            except (ValueError, TypeError) as exception:
                 logging.warning(
-                    f"filling {entry=} at {i=} ({qs.T[i]=}) raised an {exception=}"
+                    "filling entry=%r at i=%r (qs.T[i]=%r) raised an exception=%r",
+                    entry,
+                    i,
+                    qs.T[i],
+                    exception,
                 )
     if clamp:
         is_finite = np.isfinite(values)
@@ -144,9 +148,10 @@ def tabulate(args: argparse.Namespace) -> None:
     )
 
     logging.info(
-        f"generating tabulated {args.entries=} at "
-        f"p=np.linspace(*{args.pressure}) [Pa], "
-        f"T=np.linspace(*{args.temperature}) [K]"
+        "generating tabulated entries=%r at p=np.linspace(*%r) [Pa], T=np.linspace(*%r) [K]",
+        args.entries,
+        args.pressure,
+        args.temperature,
     )
 
     qs = Quantities(p=np.linspace(*args.pressure), T=np.linspace(*args.temperature))
@@ -170,6 +175,9 @@ def tabulate(args: argparse.Namespace) -> None:
             outfile = future_to_outfile[future]
             try:
                 future.result()
-                logging.info(f"{outfile.name=} tabulation created")
-            except Exception as exception:
-                logging.warning(f"writing to {outfile.name=} raised an {exception=}")
+                logging.info("%r tabulation created", outfile.name)
+            except (
+                concurrent.futures.process.BrokenProcessPool,
+                RuntimeError,
+            ) as exception:
+                logging.warning("writing to %r raised an %r", outfile.name, exception)

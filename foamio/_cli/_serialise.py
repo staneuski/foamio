@@ -4,7 +4,7 @@ import argparse
 import json
 import logging
 import re
-import xml.etree.cElementTree as et
+import xml.etree.ElementTree as et
 from pathlib import Path
 
 SUPPORTED_SUFFIXES = dict(writer={".pvd", ".series"})
@@ -38,7 +38,7 @@ def __validate(args: argparse.Namespace) -> None:
 
     def validate(io: str, suffix: str) -> None:
         if not suffix.endswith(tuple(SUPPORTED_SUFFIXES[io])):
-            logging.fatal(f"{suffix=} is not supported by {io} - exiting…")
+            logging.fatal("%r is not supported by %s - exiting…", suffix, io)
             raise SystemExit(1)
 
     args.indir = args.indir.resolve()
@@ -72,7 +72,7 @@ def __pvd(time_to_file: Path, outfile: Path) -> None:
         )
     tree = et.ElementTree(root)
     tree.write(outfile)
-    logging.info(f"{outfile} generated")
+    logging.info("%s generated", outfile)
 
 
 def __series(time_to_file: dict[float, str], outfile: Path) -> None:
@@ -87,9 +87,9 @@ def __series(time_to_file: dict[float, str], outfile: Path) -> None:
         "files": [{"name": f, "time": time} for time, f in time_to_file.items()],
         "file-series-version": "1.0",
     }
-    with open(outfile, "w") as f:
+    with open(outfile, "w", encoding="utf-8") as f:
         json.dump(root, f, separators=(",", ":"))
-        logging.info(f"{outfile} generated")
+        logging.info("%s generated", outfile)
 
 
 def serialise(args: argparse.Namespace) -> None:
@@ -103,12 +103,17 @@ def serialise(args: argparse.Namespace) -> None:
     }
     if not time_to_file:
         logging.fatal(
-            f"no files matched the {args.pattern=} in {args.indir} - skipping…"
+            "no files matched the pattern=%r in %s - skipping…",
+            args.pattern,
+            args.indir,
         )
         raise SystemExit(1)
 
     logging.info(
-        f"{len(time_to_file)} files matched the {args.pattern=} in {args.indir}"
+        "%d files matched the pattern=%r in %s",
+        len(time_to_file),
+        args.pattern,
+        args.indir,
     )
 
     outsuffix = args.outfile.suffix
@@ -119,5 +124,5 @@ def serialise(args: argparse.Namespace) -> None:
         __series(time_to_file, args.outfile)
         return
 
-    logging.fatal(f"unsupported pattern {outsuffix=} - exiting…")
+    logging.fatal("unsupported pattern outsuffix=%r - exiting…", outsuffix)
     raise SystemExit(1)

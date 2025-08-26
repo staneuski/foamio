@@ -109,15 +109,18 @@ def plot(args: argparse.Namespace) -> None:
 
     def animate(frame: int = 0) -> None:
         ax.clear()
-        logging.debug(f"animate {frame=}")
+        logging.debug("animate frame=%d", frame)
         __plot(ax, args)
 
     fig = plt.figure(figsize=(10, 6))
     fig.suptitle(args.title, fontweight="bold", fontsize=16)
 
     logging.info(
-        f'animating "{args.title}" figure with "{args.subtitle}" plot'
-        f" from {args.loc} every {args.refresh}s"
+        'animating "%s" figure with "%s" plot from %s every %ss',
+        args.title,
+        args.subtitle,
+        args.loc,
+        args.refresh,
     )
     ax = fig.add_subplot()
     df = __plot(ax, args)
@@ -129,7 +132,7 @@ def plot(args: argparse.Namespace) -> None:
             save_count=1,
             interval=1e3 * args.refresh,
         )
-        logging.debug(f"{ani._draw_was_started=}")
+        logging.debug("animation started: %s", hasattr(ani, "_draw_was_started"))
 
     # plt.tight_layout()
     if args.background:
@@ -145,7 +148,7 @@ def plot(args: argparse.Namespace) -> None:
                 else args.loc.with_suffix(f"{tail}.png")
             )
         )
-        logging.info(f"saved plot to {fname}")
+        logging.info("saved plot to %s", fname)
         return
 
     plt.show(block=True)
