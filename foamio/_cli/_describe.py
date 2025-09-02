@@ -23,7 +23,7 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         "-uc",
         type=int,
         nargs="+",
-        help="column indices to describe",
+        help="column indices to describe (1-based indexing)",
     )
     parser.add_argument(
         "--usenth",
@@ -41,12 +41,31 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         help="filter columns by regex pattern after reading",
     )
 
+    parser.add_argument(
+        "--index",
+        "-i",
+        type=str,
+        nargs="+",
+        default=None,
+        help="row names to leave as index ('mean', 'last', etc.)",
+    )
+
+    parser.add_argument(
+        "--hide-index",
+        "-hi",
+        action="store_false",
+        help="do not print index column",
+    )
+    parser.add_argument(
+        "--hide-header",
+        "-hc",
+        action="store_false",
+        help="do not print column names",
+    )
+
 
 def __validate(args: argparse.Namespace) -> None:
     args.loc = args.loc.resolve()
-
-    if args.usecols is not None:
-        args.usecols = [int(c) + 1 for c in args.usecols]
 
 
 def describe(args: argparse.Namespace) -> None:
@@ -59,11 +78,14 @@ def describe(args: argparse.Namespace) -> None:
             regex=args.filter,
             axis="columns",
         )
+
     stat = df.describe()
     stat.loc["last"] = df.iloc[-1]
+    if args.index is not None:
+        stat = stat.loc[args.index]
 
     if not args.background:
-        print(stat)
+        print(stat.to_string(index=args.hide_index, header=args.hide_header))
         return
 
     # Save to path with .csv suffix either for folder name

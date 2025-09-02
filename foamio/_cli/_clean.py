@@ -2,35 +2,12 @@ import argparse
 import concurrent.futures
 import logging
 import re
-from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 
 from foamio._common import NUMBER_PATTERN
-from foamio._helpers import remove, require_range
-
-
-@dataclass
-class Interval:
-    lhs: float = 0
-    rhs: float = np.inf
-
-    lhs_less = np.less_equal
-    rhs_less = np.less
-
-    def __post_init__(self):
-        self.lhs = (
-            0 if not isinstance(self.lhs, float) and self.lhs == "" else float(self.lhs)
-        )
-        self.rhs = (
-            np.inf
-            if not isinstance(self.rhs, float) and self.rhs == ""
-            else float(self.rhs)
-        )
-
-    def is_in(self, value: float) -> bool:
-        return self.lhs_less(self.lhs, value) and self.rhs_less(value, self.rhs)
+from foamio._helpers import Interval, remove, require_range
 
 
 def add_args(parser: argparse.ArgumentParser) -> None:
@@ -76,7 +53,7 @@ def add_args(parser: argparse.ArgumentParser) -> None:
 def __validate(args: argparse.Namespace) -> None:
     args.indir = args.indir.resolve()
     args.interval = (
-        Interval(*args.interval.split(":")) if not args.interval is None else Interval()
+        Interval(*args.interval.split(":")) if args.interval is not None else Interval()
     )
 
     if args.exclude_first:

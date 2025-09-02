@@ -1,7 +1,32 @@
 import argparse
 import linecache
 import shutil
+from dataclasses import dataclass
 from pathlib import Path
+
+import numpy as np
+
+
+@dataclass
+class Interval:
+    lhs: float = 0
+    rhs: float = np.inf
+
+    lhs_less = np.less_equal
+    rhs_less = np.less
+
+    def __post_init__(self):
+        self.lhs = (
+            0 if not isinstance(self.lhs, float) and self.lhs == "" else float(self.lhs)
+        )
+        self.rhs = (
+            np.inf
+            if not isinstance(self.rhs, float) and self.rhs == ""
+            else float(self.rhs)
+        )
+
+    def is_in(self, value: float) -> bool:
+        return self.lhs_less(self.lhs, value) and self.rhs_less(value, self.rhs)
 
 
 def _count_columns(filepath: Path | str, sep: str, line_no: int = 1) -> int:

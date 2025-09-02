@@ -21,6 +21,7 @@ def __unnest_columns(dat: pd.DataFrame) -> pd.DataFrame:
     """Unnest non-scalar field values to components."""
 
     colnames: list[str] = list(dat)
+    nested_colnames = []
     unnested: list[pd.DataFrame] = [dat]
     for i, name in enumerate(dat.columns):
         if not (
@@ -32,13 +33,18 @@ def __unnest_columns(dat: pd.DataFrame) -> pd.DataFrame:
             continue
 
         col = col.replace(r"^\(|\)$", "", regex=True).apply(lambda s: s.split())
-        unnested_names = [f"{name}.{i}" for i in range(col.map(len).max())]
-        colnames[i : i + len(unnested_names)] = unnested_names
+        ncomp = col.map(len).max()
+        colnames[i + 1 : i + 1] = [f"{name}.{i}" for i in range(ncomp)]
 
         unnested.append(
-            pd.DataFrame(col.to_list(), index=col.index, columns=unnested_names)
+            pd.DataFrame(
+                col.to_list(),
+                index=col.index,
+                columns=colnames[i + 1 : i + 1 + ncomp],
+            )
         )
-    return pd.concat(unnested, axis=1).drop(columns=set(dat) - set(colnames))
+        nested_colnames.append(name)
+    return pd.concat(unnested, axis=1)[colnames].drop(columns=nested_colnames)
 
 
 def read(
@@ -49,7 +55,7 @@ def read(
     Args:
         filepath (Path | str): path to .dat-file of directory
         with .dat-files.
-        usecols (list[int], optional): columns to read (starting with 1).
+        usecols (list[int], optional): columns to read (1-based indexing).
         Defaults to None.
         usenth (int, optional): read every n-th row. Defaults to None.
 

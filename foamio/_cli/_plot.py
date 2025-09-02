@@ -4,8 +4,10 @@ from pathlib import Path
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
+from foamio._helpers import Interval
 from foamio.dat import read
 
 
@@ -53,7 +55,7 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         "-uc",
         type=int,
         nargs="+",
-        help="column indices to plot",
+        help="column indices to plot (1-based indexing)",
     )
     parser.add_argument(
         "--usenth",
@@ -70,6 +72,16 @@ def add_args(parser: argparse.ArgumentParser) -> None:
         default=None,
         help="filter columns by regex pattern after reading",
     )
+    parser.add_argument(
+        "--index",
+        type=str,
+        help="x-interval (e.g. '1e-5:0.01' or '1e-5:')",
+    )
+    parser.add_argument(
+        "--range",
+        type=str,
+        help="y-interval (e.g. '1e-5:0.01' or '1e-5:')",
+    )
 
 
 def __validate(args: argparse.Namespace) -> None:
@@ -79,8 +91,13 @@ def __validate(args: argparse.Namespace) -> None:
     args.title = titles[0] if args.title is None else args.title
     args.subtitle = titles[1] if args.subtitle is None else args.subtitle
 
-    if args.usecols is not None:
-        args.usecols = [int(c) + 1 for c in args.usecols]
+    if args.index is not None:
+        args.index = Interval(*args.index.split(":"))
+        args.index.rhs_less = np.less_equal
+
+    if args.range is not None:
+        args.range = Interval(*args.range.split(":"))
+        args.range.rhs_less = np.less_equal
 
 
 def __get_titles(loc: Path) -> tuple[str, str]:
@@ -94,10 +111,10 @@ def __get_titles(loc: Path) -> tuple[str, str]:
         tuple[str, str]: title, subtitle
     """
 
-    if "postProcessing" not in str(loc.parts):
+    folders = list(loc.parts)
+    if "postProcessing" not in folders:
         return "", ""
 
-    folders = list(loc.parts)
     ind = folders.index("postProcessing")
     return (folders[ind - 1], folders[ind + 1])
 
@@ -108,16 +125,12 @@ def plot(args: argparse.Namespace) -> None:
     def __plot(ax, args) -> pd.DataFrame:
         df = read(args.loc, usecols=args.usecols, usenth=args.usenth)
         if args.filter is not None:
-            df = df.filter(
-                regex=args.filter,
-                axis="columns",
-            )
-        df.plot(
-            ax=ax,
-            title=args.subtitle,
-            logy=args.logscale,
-            grid=True,
-        )
+            df = df.filter(regex=args.filter, axis="columns")
+        if args.index is not None:
+            df = df[df.index.map(args.index.is_in)]
+        if args.range is not None:
+            df = df[df.map(args.range.is_in).all(axis="columns")]
+        df.plot(ax=ax, title=args.subtitle, logy=args.logscale, grid=True)
         return df
 
     def animate(frame: int = 0) -> None:
@@ -140,10 +153,7 @@ def plot(args: argparse.Namespace) -> None:
 
     if args.refresh and not args.background:
         ani = animation.FuncAnimation(
-            fig=fig,
-            func=animate,
-            save_count=1,
-            interval=1e3 * args.refresh,
+            fig=fig, func=animate, save_count=1, interval=1e3 * args.refresh
         )
         logging.debug("animation started: %s", hasattr(ani, "_draw_was_started"))
 
